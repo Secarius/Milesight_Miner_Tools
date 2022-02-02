@@ -27,7 +27,7 @@ from assets import images_rc
 from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
 
-version_build = "1.0.4"
+version_build = "1.0.5"
 optionspath = 'config/options.config'
 try:
     f = open(optionspath)
@@ -456,7 +456,7 @@ class Ui_MainWindow(object):
         self.s.disconnect()
 
     def run_height_compare(self):
-        cmd = 'echo "Current Miner height: " && docker exec miner miner info height | sed \'s/^.\{7\}//\' && echo "Cur. Blockchain height:" && curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{19\}//\' | sed \'s/.\{2\}$//\' && echo'
+        cmd = 'echo "Current Miner height: " && docker exec miner miner info height | sed \'s/^.\{7\}//\' && echo "Cur. Blockchain height:" && curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{18\}//\' | sed \'s/.\{2\}$//\' && echo'
         #self.update_fbdata(f'${cmd}\n')
         out, stderr = self.s.exec_cmd(cmd=cmd)
         self.update_fbdata(out)
