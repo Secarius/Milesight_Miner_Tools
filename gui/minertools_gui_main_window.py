@@ -27,7 +27,7 @@ from assets import images_rc
 from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
 
-version_build = "1.0.5"
+version_build = "1.0.6"
 dir_path = '%s\\MinerTools\\' %  os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -231,9 +231,15 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.action_Exit = QtWidgets.QAction(MainWindow)
         self.action_Exit.setObjectName("action_Exit")
+        self.action_Import_Config = QtWidgets.QAction(MainWindow)
+        self.action_Import_Config.setObjectName("action_Edit_Config")
         self.action_Edit_Config = QtWidgets.QAction(MainWindow)
         self.action_Edit_Config.setObjectName("action_Edit_Config")
+        self.action_Export_Config = QtWidgets.QAction(MainWindow)
+        self.action_Export_Config.setObjectName("action_Export_Config")
         self.menuFile.addAction(self.action_Edit_Config)
+        self.menuFile.addAction(self.action_Import_Config)
+        self.menuFile.addAction(self.action_Export_Config)
         self.menuFile.addAction(self.action_Exit)
         self.menubar.addAction(self.menuFile.menuAction())
 
@@ -242,6 +248,8 @@ class Ui_MainWindow(object):
 ##################################################################
 # Button Actions
         self.action_Edit_Config.triggered.connect(self.edit_config)
+        self.action_Export_Config.triggered.connect(self.export_config)
+        self.action_Import_Config.triggered.connect(self.import_config)
         self.action_Exit.triggered.connect(self.exit_window)
 
         self.savepath = 'log.txt'
@@ -289,7 +297,30 @@ class Ui_MainWindow(object):
         
     def edit_config(self):
         os.system('notepad.exe ' + optionspath)
-    
+        self.updatecombo()
+
+    def export_config(self):
+        name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File')
+        if not name[0] == '':
+            with open(optionspath) as f:
+                with open(name[0], "w") as f1:
+                    for line in f:
+                        f1.write(line)
+                f1.close()
+            f.close()
+        self.updatecombo()
+
+    def import_config(self):
+        name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')
+        if not name[0] == '':
+            with open(name[0]) as f:
+                with open(optionspath, "w") as f1:
+                    for line in f:
+                        f1.write(line)
+                f1.close()
+            f.close()
+        self.updatecombo()
+
     def exit_window(self):
         qApp.quit()
 
@@ -557,3 +588,5 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.action_Exit.setText(_translate("MainWindow", "Exit"))
         self.action_Edit_Config.setText(_translate("MainWindow", "Edit Config"))
+        self.action_Export_Config.setText(_translate("MainWindow", "Export Config"))
+        self.action_Import_Config.setText(_translate("MainWindow", "Import Config"))
