@@ -34,8 +34,8 @@ bdist_msi_options = {
 }
 
 options = {
-    'build_exe': build_exe_options#,
-    #'bdist_msi': bdist_msi_options
+    'build_exe': build_exe_options,
+    'bdist_msi': bdist_msi_options
 }
 
 #exe information
@@ -43,7 +43,7 @@ base = 'Win32GUI' if sys.platform == 'win32' else None
 icon = 'assets\helium.ico'
 
 mainexe = Executable(
-    'minertools.py',
+    'main.py',
     targetName = 'MinerTools.exe',
     base = base,
     icon = icon,

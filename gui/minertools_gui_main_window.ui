@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1217</width>
-    <height>840</height>
+    <width>1202</width>
+    <height>792</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,7 +56,7 @@
      <string>Info</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="button_compare_hight">
+   <widget class="QPushButton" name="button_compare_height">
     <property name="geometry">
      <rect>
       <x>245</x>
@@ -74,7 +74,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Compare Hight</string>
+     <string>Compare Height</string>
     </property>
    </widget>
    <widget class="QPushButton" name="button_peer_book">
@@ -119,7 +119,7 @@
      <string>Restart Miner</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_7">
+   <widget class="QPushButton" name="button_7">
     <property name="geometry">
      <rect>
       <x>725</x>
@@ -140,7 +140,7 @@
      <string>PushButton</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_6">
+   <widget class="QPushButton" name="button_6">
     <property name="geometry">
      <rect>
       <x>605</x>
@@ -161,7 +161,7 @@
      <string>PushButton</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_8">
+   <widget class="QPushButton" name="button_8">
     <property name="geometry">
      <rect>
       <x>845</x>
@@ -244,17 +244,18 @@
      <string>Send Command</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="line_command">
     <property name="geometry">
      <rect>
-      <x>7</x>
+      <x>6</x>
       <y>710</y>
-      <width>1068</width>
+      <width>1070</width>
       <height>41</height>
      </rect>
     </property>
     <property name="font">
      <font>
+      <family>MS Shell Dlg 2</family>
       <pointsize>11</pointsize>
      </font>
     </property>
@@ -262,21 +263,28 @@
      <string>docker exec miner miner info height &amp;&amp; curl -k https://api.helium.io/v1/blocks/height</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="comboBox">
+   <widget class="QComboBox" name="combo_select_miner">
     <property name="geometry">
      <rect>
       <x>104</x>
-      <y>4</y>
+      <y>3</y>
       <width>210</width>
-      <height>22</height>
+      <height>26</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="label_select_miner">
     <property name="geometry">
      <rect>
       <x>4</x>
-      <y>0</y>
+      <y>1</y>
       <width>100</width>
       <height>31</height>
      </rect>
@@ -292,7 +300,7 @@
      <string>Select Miner:</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="logo_milesight">
     <property name="geometry">
      <rect>
       <x>1100</x>
@@ -324,30 +332,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QScrollArea" name="scrollArea">
-    <property name="geometry">
-     <rect>
-      <x>6</x>
-      <y>30</y>
-      <width>1189</width>
-      <height>621</height>
-     </rect>
-    </property>
-    <property name="widgetResizable">
-     <bool>true</bool>
-    </property>
-    <widget class="QWidget" name="scrollAreaWidgetContents">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>1187</width>
-       <height>619</height>
-      </rect>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="label_version">
     <property name="geometry">
      <rect>
       <x>1006</x>
@@ -365,7 +350,7 @@
      <string>Version:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_3">
+   <widget class="QLabel" name="label_version_numer">
     <property name="geometry">
      <rect>
       <x>1060</x>
@@ -383,13 +368,70 @@
      <string>1.0.0</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="button_config_edit">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>2</y>
+      <width>111</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+      <kerning>true</kerning>
+     </font>
+    </property>
+    <property name="text">
+     <string>Edit Config</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="button_config_reload">
+    <property name="geometry">
+     <rect>
+      <x>435</x>
+      <y>2</y>
+      <width>111</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+      <kerning>true</kerning>
+     </font>
+    </property>
+    <property name="text">
+     <string>Reload Config</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="text_console">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>34</y>
+      <width>1190</width>
+      <height>621</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Courier New</family>
+     </font>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1217</width>
+     <width>1202</width>
      <height>21</height>
     </rect>
    </property>
@@ -397,18 +439,18 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionEdit_Config"/>
-    <addaction name="actionExit"/>
+    <addaction name="action_Edit_Config"/>
+    <addaction name="action_Exit"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionExit">
+  <action name="action_Exit">
    <property name="text">
     <string>Exit</string>
    </property>
   </action>
-  <action name="actionEdit_Config">
+  <action name="action_Edit_Config">
    <property name="text">
     <string>Edit Config</string>
    </property>
