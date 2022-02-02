@@ -28,7 +28,10 @@ from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
 
 version_build = "1.0.5"
-optionspath = 'config/options.config'
+dir_path = '%s\\MinerTools\\' %  os.environ['APPDATA'] 
+if not os.path.exists(dir_path):
+    os.makedirs(dir_path)
+optionspath = '%s\\options.config' % dir_path
 try:
     f = open(optionspath)
 except IOError:

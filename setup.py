@@ -22,7 +22,7 @@ build_exe_options = {
     'packages': ['os'],
     # 'excludes': [''], #Exclude tkinter as it is not used
     # 'includes': [''],
-    'include_files': ['assets/', 'config/'],
+    'include_files': ['assets/'],
     'include_msvcr': True #Since it uses PySide, it cannot be started unless Microsoft's C runtime is included.
 }
 
