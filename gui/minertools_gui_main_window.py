@@ -27,7 +27,7 @@ from assets import images_rc
 from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
 
-version_build = "1.0.3"
+version_build = "1.0.4"
 optionspath = 'config/options.config'
 try:
     f = open(optionspath)
@@ -212,8 +212,10 @@ class Ui_MainWindow(object):
         self.text_console.setGeometry(QtCore.QRect(6, 34, 1190, 621))
         font = QtGui.QFont()
         font.setFamily("Courier New")
+        font.setPointSize(12)
         self.text_console.setFont(font)
         self.text_console.setObjectName("text_console")
+        self.text_console.setStyleSheet("background-color:#212121;color:#A4E87F;")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1202, 21))
@@ -455,7 +457,7 @@ class Ui_MainWindow(object):
 
     def run_height_compare(self):
         cmd = 'echo "Current Miner height: " && docker exec miner miner info height | sed \'s/^.\{7\}//\' && echo "Cur. Blockchain height:" && curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{19\}//\' | sed \'s/.\{2\}$//\' && echo'
-        self.update_fbdata(f'${cmd}\n')
+        #self.update_fbdata(f'${cmd}\n')
         out, stderr = self.s.exec_cmd(cmd=cmd)
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
