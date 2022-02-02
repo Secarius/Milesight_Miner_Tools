@@ -27,6 +27,7 @@ from assets import images_rc
 from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
 
+version_build = "1.0.3"
 optionspath = 'config/options.config'
 try:
     f = open(optionspath)
@@ -249,7 +250,7 @@ class Ui_MainWindow(object):
         self.button_status.clicked.connect(self.status_but_func)
         self.button_info.clicked.connect(self.miner_info_func)
         self.button_peer_book.clicked.connect(self.run_peer_book_func)
-        self.button_compare_height.clicked.connect(self.status_but_func)
+        self.button_compare_height.clicked.connect(self.run_height_compare_func)
         self.button_6.clicked.connect(self.status_but_func)
         self.button_7.clicked.connect(self.status_but_func)
         self.button_8.clicked.connect(self.status_but_func)
@@ -394,6 +395,16 @@ class Ui_MainWindow(object):
             self.tmpthread.start()
         else:
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
+    def run_height_compare_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_height_compare)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
     #*************************** BUTTON FUNCTIONS ***************************
 
     def run_quagga_cmd(self):
@@ -435,6 +446,15 @@ class Ui_MainWindow(object):
 
     def run_line_command_cmd(self):
         cmd = self.line_command.text()
+        self.update_fbdata(f'${cmd}\n')
+        out, stderr = self.s.exec_cmd(cmd=cmd)
+        self.update_fbdata(out)
+        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+        self.update_fbdata(f'*** DONE ***\n')
+        self.s.disconnect()
+
+    def run_height_compare(self):
+        cmd = 'echo "Current Miner height: " && docker exec miner miner info height | sed \'s/^.\{7\}//\' && echo "Cur. Blockchain height:" && curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{19\}//\' | sed \'s/.\{2\}$//\' && echo'
         self.update_fbdata(f'${cmd}\n')
         out, stderr = self.s.exec_cmd(cmd=cmd)
         self.update_fbdata(out)
@@ -526,7 +546,7 @@ class Ui_MainWindow(object):
         self.line_command.setText(_translate("MainWindow", "docker exec miner miner info height && curl -k https://api.helium.io/v1/blocks/height"))
         self.label_select_miner.setText(_translate("MainWindow", "Select Miner:"))
         self.label_version.setText(_translate("MainWindow", "Version:"))
-        self.label_version_numer.setText(_translate("MainWindow", "1.0.0"))
+        self.label_version_numer.setText(_translate("MainWindow", version_build))
         self.button_config_edit.setText(_translate("MainWindow", "Edit Config"))
         self.button_config_reload.setText(_translate("MainWindow", "Reload Config"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
