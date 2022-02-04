@@ -314,20 +314,26 @@ class Ui_MainWindow(object):
         if (version.parse(version_build) < version.parse(online_version)):
             updateurl = "https://github.com/Secarius/Milesight_Miner_Tools/raw/main/%s" % zippackage
             reply = QtWidgets.QMessageBox.question(self, 'Message',
-                "Do you want to update?", QtWidgets.QMessageBox.Yes | 
+                "New Update availible. Do you want to update?", QtWidgets.QMessageBox.Yes | 
                 QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
             if reply == QtWidgets.QMessageBox.Yes:
+                self.update_fbdata('Downloading new Version....')
                 urllib.request.urlretrieve(updateurl,"miner-update.zip")
+                self.update_fbdata('Downloading updater....')
                 urllib.request.urlretrieve("https://github.com/Secarius/Milesight_Miner_Tools/raw/main/installer/updater.zip","updater.zip")
+                self.update_fbdata('Extracting updater....')
                 with ZipFile('updater.zip', 'r') as zipOjk:
                     zipOjk.extractall()
                 updatepath = pathlib.Path().resolve()
                 updater = str(updatepath)
                 print(updater + "\\updater\miner-update.exe")
-                Popen("%s\\updater\miner-update.exe" % updater)
+                self.update_fbdata('Starting Update....')
+                #Popen("%s\\updater\miner-update.exe" % updater)
                 sys.exit()
         else:
             pprint("no update available")
+            reply = QtWidgets.QMessageBox.question(self, 'Message',
+                "No Update available", QtWidgets.QMessageBox.Ok)
 
     def updatecombo(self):
         try:
