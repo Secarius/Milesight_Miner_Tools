@@ -42,8 +42,9 @@ from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
 import psutil
 import time
+import webbrowser
 
-version_build = "1.1.3"
+version_build = "1.1.4"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -211,7 +212,7 @@ class Ui_MainWindow(object):
         self.label_version_numer.setFont(font)
         self.label_version_numer.setObjectName("label_version_numer")
         self.button_config_edit = QtWidgets.QPushButton(self.centralwidget)
-        self.button_config_edit.setGeometry(QtCore.QRect(320, 2, 111, 28))
+        self.button_config_edit.setGeometry(QtCore.QRect(435, 2, 111, 28))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -220,7 +221,7 @@ class Ui_MainWindow(object):
         self.button_config_edit.setFont(font)
         self.button_config_edit.setObjectName("button_config_edit")
         self.button_config_reload = QtWidgets.QPushButton(self.centralwidget)
-        self.button_config_reload.setGeometry(QtCore.QRect(435, 2, 111, 28))
+        self.button_config_reload.setGeometry(QtCore.QRect(550, 2, 111, 28))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -237,6 +238,15 @@ class Ui_MainWindow(object):
         font.setKerning(True)
         self.button_check_update.setFont(font)
         self.button_check_update.setObjectName("button_check_update")
+        self.button_open_website = QtWidgets.QPushButton(self.centralwidget)
+        self.button_open_website.setGeometry(QtCore.QRect(320, 2, 115, 28))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setKerning(True)
+        self.button_open_website.setFont(font)
+        self.button_open_website.setObjectName("button_open_website")
         self.text_console = QtWidgets.QPlainTextEdit(self.centralwidget)
         self.text_console.setGeometry(QtCore.QRect(6, 34, 1190, 621))
         self.text_console = QtWidgets.QPlainTextEdit(self.centralwidget)
@@ -298,6 +308,7 @@ class Ui_MainWindow(object):
         self.button_fast_sync.clicked.connect(self.update_but_func)
         self.button_quagga_restart.clicked.connect(self.quagga_but_func)
         self.button_check_update.clicked.connect(self.get_url_paths)
+        self.button_open_website.clicked.connect(self.run_open_miner_website)
 
     def get_url_paths(self):
         #logf = open("error.log", "w")
@@ -358,8 +369,14 @@ class Ui_MainWindow(object):
             else:
                 self.throw_custom_error(title='Error', message='Config is empty!')
 
-    def run_funk(self):
-        print(self.line_command.text())
+    def run_open_miner_website(self):
+        combopos = self.combo_select_miner.currentIndex()
+        if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
+            addr = minerconfig[1]
+        else:
+            addr = minerconfig[combopos][1]
+        minerurl = 'http://%s/' % addr
+        webbrowser.open(minerurl, new=0, autoraise=True)
         
     def edit_config(self):
         os.system('notepad.exe ' + optionspath)
@@ -633,7 +650,7 @@ class Ui_MainWindow(object):
 ##################################################################
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Miner Tools"))
         self.button_status.setText(_translate("MainWindow", "Status"))
         self.button_info.setText(_translate("MainWindow", "Info"))
         self.button_compare_height.setText(_translate("MainWindow", "Compare Height"))
@@ -652,6 +669,7 @@ class Ui_MainWindow(object):
         self.button_config_edit.setText(_translate("MainWindow", "Edit Config"))
         self.button_config_reload.setText(_translate("MainWindow", "Reload Config"))
         self.button_check_update.setText(_translate("MainWindow", "Check Update"))
+        self.button_open_website.setText(_translate("MainWindow", "Open in Browser"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.action_Exit.setText(_translate("MainWindow", "Exit"))
         self.action_Edit_Config.setText(_translate("MainWindow", "Edit Config"))
