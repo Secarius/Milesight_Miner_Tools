@@ -43,7 +43,7 @@ from paramiko import SSHClient, AutoAddPolicy
 import psutil
 import time
 
-version_build = "1.1.2"
+version_build = "1.1.3"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -299,41 +299,42 @@ class Ui_MainWindow(object):
         self.button_quagga_restart.clicked.connect(self.quagga_but_func)
         self.button_check_update.clicked.connect(self.get_url_paths)
 
-    def check_update_func(self):
-        print()
-
     def get_url_paths(self):
-        r = requests.get("https://api.github.com/repos/Secarius/Milesight_Miner_Tools/git/trees/main?recursive=1")
-        data = r.json()
-        url = [item['path'] for item in data['tree']]
-        updatepackage = [string for string in url if 'minertools' in string]
-        zippackage = [string for string in updatepackage if '.zip' in string]
-        zippackage = zippackage[0]
-        online_version = zippackage.replace(".zip", "")
-        online_version = online_version.replace("installer/minertools_", "")
-        if (version.parse(version_build) < version.parse(online_version)):
-            updateurl = "https://github.com/Secarius/Milesight_Miner_Tools/raw/main/%s" % zippackage
-            reply = QtWidgets.QMessageBox.question(self, 'Message',
-                "New Update availible. Do you want to update?", QtWidgets.QMessageBox.Yes | 
-                QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-            if reply == QtWidgets.QMessageBox.Yes:
-                self.update_fbdata('Downloading new Version....')
-                urllib.request.urlretrieve(updateurl,"miner-update.zip")
-                self.update_fbdata('Downloading updater....')
-                urllib.request.urlretrieve("https://github.com/Secarius/Milesight_Miner_Tools/raw/main/installer/updater.zip","updater.zip")
-                self.update_fbdata('Extracting updater....')
-                with ZipFile('updater.zip', 'r') as zipOjk:
-                    zipOjk.extractall()
-                updatepath = pathlib.Path().resolve()
-                updater = str(updatepath)
-                print(updater + "\\updater\miner-update.exe")
-                self.update_fbdata('Starting Update....')
-                #Popen("%s\\updater\miner-update.exe" % updater)
-                sys.exit()
-        else:
-            pprint("no update available")
-            reply = QtWidgets.QMessageBox.question(self, 'Message',
-                "No Update available", QtWidgets.QMessageBox.Ok)
+        #logf = open("error.log", "w")
+        try:
+            r = requests.get("https://api.github.com/repos/Secarius/Milesight_Miner_Tools/git/trees/main?recursive=1")
+            data = r.json()
+            url = [item['path'] for item in data['tree']]
+            updatepackage = [string for string in url if 'minertools' in string]
+            zippackage = [string for string in updatepackage if '.zip' in string]
+            zippackage = zippackage[0]
+            online_version = zippackage.replace(".zip", "")
+            online_version = online_version.replace("installer/minertools_", "")
+            if (version.parse(version_build) < version.parse(online_version)):
+                logf.write("Debug")
+                updateurl = "https://github.com/Secarius/Milesight_Miner_Tools/raw/main/%s" % zippackage
+                reply = QtWidgets.QMessageBox.question(self, 'Message',
+                    "New Update availible. Do you want to update?", QtWidgets.QMessageBox.Yes | 
+                    QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                if reply == QtWidgets.QMessageBox.Yes:
+                    self.update_fbdata(f'Downloading new Version....')
+                    urllib.request.urlretrieve(updateurl,"miner-update.zip")
+                    self.update_fbdata(f'Downloading updater....')
+                    urllib.request.urlretrieve("https://github.com/Secarius/Milesight_Miner_Tools/raw/main/installer/updater.zip","updater.zip")
+                    self.update_fbdata(f'Extracting updater....')
+                    with ZipFile('updater.zip', 'r') as zipOjk:
+                        zipOjk.extractall()
+                    updatepath = pathlib.Path().resolve()
+                    updater = str(updatepath)
+                    print(updater + "\\updater\miner-update.exe")
+                    self.update_fbdata(f'Starting Update....')
+                    Popen("%s\\updater\miner-update.exe" % updater)
+                    sys.exit()
+            else:
+                reply = QtWidgets.QMessageBox.question(self, 'Message',
+                    "No Update available", QtWidgets.QMessageBox.Ok)
+        except Exception as e:     # most generic exception you can catch
+            print(str(e))
 
     def updatecombo(self):
         try:
