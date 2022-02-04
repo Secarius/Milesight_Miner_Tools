@@ -43,7 +43,7 @@ from paramiko import SSHClient, AutoAddPolicy
 import psutil
 import time
 
-version_build = "1.1.1"
+version_build = "1.1.2"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
