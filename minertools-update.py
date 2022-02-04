@@ -27,7 +27,7 @@ class App(QWidget):
     
         # Create widget
         label = QLabel(self)
-        pixmap = QPixmap('assets/update.jpeg')
+        pixmap = QPixmap('updater/assets/update.jpeg')
         label.setPixmap(pixmap)
         self.resize(pixmap.width(),pixmap.height())
         
