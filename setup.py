@@ -45,11 +45,11 @@ icon = 'assets\helium.ico'
 
 mainexe = Executable(
     'main.py',
-    targetName = 'MinerTools.exe',
+    target_name = 'MinerTools.exe',
     base = base,
     icon = icon,
-    shortcutName="Milesight MinerTools",
-    shortcutDir="DesktopFolder"
+    shortcut_name ="Milesight MinerTools",
+    shortcut_dir ="DesktopFolder"
 )
 
 setup(

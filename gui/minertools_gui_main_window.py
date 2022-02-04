@@ -452,6 +452,7 @@ class Ui_MainWindow(object):
                 self.log += f'#{cmd}\n{out}'
                 if stderr != '': self.log += f'STDERR: {stderr}'
         self.update_fbdata('*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.save()
         self.s.disconnect()
 
@@ -575,6 +576,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
 
@@ -585,6 +587,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_miner_info_cmd(self):
@@ -594,6 +597,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_restart_miner_cmd(self):
@@ -603,6 +607,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_sync_status_log_cmd(self):
@@ -612,6 +617,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_disk_usage_cmd(self):
@@ -621,6 +627,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def docker_console_log_cmd(self):
@@ -630,6 +637,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_peer_book_cmd(self):
@@ -639,6 +647,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_line_command_cmd(self):
@@ -648,6 +657,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_height_compare(self):
@@ -657,6 +667,7 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 # Connect Sequence
     def conn_sequence(self):
@@ -692,12 +703,15 @@ class Ui_MainWindow(object):
         self.clear_fbdata()
         if not self.s.is_alive() or connection == None:
             self.update_fbdata('Connection Error.\nCheck username and password in options.config in files/ folder.')
+            self.text_console.ensureCursorVisible()
             return None
         return True
 
     def update_fbdata(self, d):
         self.text_console.insertPlainText(d)
-    
+        #self.text_console.verticalScrollBar().setValue(self.text_console.verticalScrollBar().maximum())
+        self.text_console.ensureCursorVisible()
+
     def clear_fbdata(self):
         self.text_console.clear()
 

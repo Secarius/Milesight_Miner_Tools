@@ -45,7 +45,7 @@ icon = 'assets\helium.ico'
 
 mainexe = Executable(
     'minertools-update.py',
-    targetName = 'miner-update.exe',
+    target_name = 'miner-update.exe',
     base = base,
     icon = icon
 )
