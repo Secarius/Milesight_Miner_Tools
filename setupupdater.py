@@ -4,15 +4,15 @@ import os
 from cx_Freeze import setup, Executable
 
 #Application information
-name = 'Miner Controler'
-version = '1.0.6'
+name = 'Miner Tools Updater'
+version = '1.0.0'
 author = 'Milesight'
 author_email = 'sample@example.xxx'
 url = 'http://example.xxx'
 description = 'Milesight Tool Collection'
 
 #Specify the GUID here (basically it should not be changed)
-upgrade_code = '{06637B9A-C07C-37DA-B531-782F798FE871}'
+upgrade_code = '{06637B9A-C07C-37DA-B531-782F798FE872}'
 #For 64-bit Windows, switch the installation folder
 # ProgramFiles(64)Folder seems to be replaced with the actual directory on the msi side
 programfiles_dir = 'ProgramFiles64Folder' if distutils.util.get_platform() == 'win-amd64' else 'ProgramFilesFolder'
@@ -44,12 +44,10 @@ base = 'Win32GUI' if sys.platform == 'win32' else None
 icon = 'assets\helium.ico'
 
 mainexe = Executable(
-    'main.py',
-    targetName = 'MinerTools.exe',
+    'minertools-update.py',
+    targetName = 'miner-update.exe',
     base = base,
-    icon = icon,
-    shortcutName="Milesight MinerTools",
-    shortcutDir="DesktopFolder"
+    icon = icon
 )
 
 setup(

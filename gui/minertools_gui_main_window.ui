@@ -424,6 +424,10 @@
       <family>Courier New</family>
      </font>
     </property>
+    <property name="styleSheet">
+     <string notr="true">background-color:#212121;
+color:#A4E87F;</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
