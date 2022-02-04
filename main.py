@@ -12,6 +12,9 @@ import subprocess
 import psutil
 import time
 #*************************** BUTTON FUNCTIONS ***************************
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
+
 class Window(QMainWindow, Ui_MainWindow):
     """A dummy docstring."""
     def __init__(self, parent=None):

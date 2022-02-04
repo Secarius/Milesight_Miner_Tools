@@ -44,7 +44,7 @@ import psutil
 import time
 import webbrowser
 
-version_build = "1.1.4"
+version_build = "1.1.5"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -112,33 +112,33 @@ class Ui_MainWindow(object):
         font.setKerning(True)
         self.button_restart_miner.setFont(font)
         self.button_restart_miner.setObjectName("button_restart_miner")
-        self.button_7 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_7.setGeometry(QtCore.QRect(725, 662, 111, 41))
+        self.sync_status = QtWidgets.QPushButton(self.centralwidget)
+        self.sync_status.setGeometry(QtCore.QRect(725, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
         font.setKerning(True)
-        self.button_7.setFont(font)
-        self.button_7.setObjectName("button_7")
-        self.button_6 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_6.setGeometry(QtCore.QRect(605, 662, 111, 41))
+        self.sync_status.setFont(font)
+        self.sync_status.setObjectName("docker_console_log")
+        self.docker_console_log = QtWidgets.QPushButton(self.centralwidget)
+        self.docker_console_log.setGeometry(QtCore.QRect(605, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
         font.setKerning(True)
-        self.button_6.setFont(font)
-        self.button_6.setObjectName("button_6")
-        self.button_8 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_8.setGeometry(QtCore.QRect(845, 662, 111, 41))
+        self.docker_console_log.setFont(font)
+        self.docker_console_log.setObjectName("sync_status")
+        self.disk_usage = QtWidgets.QPushButton(self.centralwidget)
+        self.disk_usage.setGeometry(QtCore.QRect(845, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
         font.setKerning(True)
-        self.button_8.setFont(font)
-        self.button_8.setObjectName("button_8")
+        self.disk_usage.setFont(font)
+        self.disk_usage.setObjectName("disk_usage")
         self.button_fast_sync = QtWidgets.QPushButton(self.centralwidget)
         self.button_fast_sync.setGeometry(QtCore.QRect(965, 661, 111, 41))
         font = QtGui.QFont()
@@ -302,13 +302,14 @@ class Ui_MainWindow(object):
         self.button_info.clicked.connect(self.miner_info_func)
         self.button_peer_book.clicked.connect(self.run_peer_book_func)
         self.button_compare_height.clicked.connect(self.run_height_compare_func)
-        self.button_6.clicked.connect(self.status_but_func)
-        self.button_7.clicked.connect(self.status_but_func)
-        self.button_8.clicked.connect(self.status_but_func)
+        self.sync_status.clicked.connect(self.sync_status_func)
+        self.docker_console_log.clicked.connect(self.docker_console_log_func)
+        self.disk_usage.clicked.connect(self.disk_usage_func)
         self.button_fast_sync.clicked.connect(self.update_but_func)
         self.button_quagga_restart.clicked.connect(self.quagga_but_func)
         self.button_check_update.clicked.connect(self.get_url_paths)
         self.button_open_website.clicked.connect(self.run_open_miner_website)
+        self.button_restart_miner.clicked.connect(self.restart_miner_func)
 
     def get_url_paths(self):
         #logf = open("error.log", "w")
@@ -455,6 +456,47 @@ class Ui_MainWindow(object):
         self.s.disconnect()
 
     #*************************** BUTTON FUNCTIONS ***************************
+    def sync_status_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_sync_status_log_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
+    def docker_console_log_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.docker_console_log_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
+    def restart_miner_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_restart_miner_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
+    def disk_usage_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_disk_usage_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
+
     def update_but_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
@@ -547,6 +589,42 @@ class Ui_MainWindow(object):
 
     def run_miner_info_cmd(self):
         cmd = 'docker exec miner miner info summary'
+        self.update_fbdata(f'${cmd}\n')
+        out, stderr = self.s.exec_cmd(cmd=cmd)
+        self.update_fbdata(out)
+        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+        self.update_fbdata(f'*** DONE ***\n')
+        self.s.disconnect()
+
+    def run_restart_miner_cmd(self):
+        cmd = 'reboot now'
+        self.update_fbdata(f'${cmd}\n')
+        out, stderr = self.s.exec_cmd(cmd=cmd)
+        self.update_fbdata(out)
+        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+        self.update_fbdata(f'*** DONE ***\n')
+        self.s.disconnect()
+
+    def run_sync_status_log_cmd(self):
+        cmd = 'docker exec miner miner repair sync_state'
+        self.update_fbdata(f'${cmd}\n')
+        out, stderr = self.s.exec_cmd(cmd=cmd)
+        self.update_fbdata(out)
+        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+        self.update_fbdata(f'*** DONE ***\n')
+        self.s.disconnect()
+
+    def run_disk_usage_cmd(self):
+        cmd = 'df -h /mnt/mmcblk0p1'
+        self.update_fbdata(f'${cmd}\n')
+        out, stderr = self.s.exec_cmd(cmd=cmd)
+        self.update_fbdata(out)
+        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+        self.update_fbdata(f'*** DONE ***\n')
+        self.s.disconnect()
+
+    def docker_console_log_cmd(self):
+        cmd = 'docker exec miner cat /var/data/log/console.log'
         self.update_fbdata(f'${cmd}\n')
         out, stderr = self.s.exec_cmd(cmd=cmd)
         self.update_fbdata(out)
@@ -656,9 +734,9 @@ class Ui_MainWindow(object):
         self.button_compare_height.setText(_translate("MainWindow", "Compare Height"))
         self.button_peer_book.setText(_translate("MainWindow", "Peer Book"))
         self.button_restart_miner.setText(_translate("MainWindow", "Restart Miner"))
-        self.button_7.setText(_translate("MainWindow", "PushButton"))
-        self.button_6.setText(_translate("MainWindow", "PushButton"))
-        self.button_8.setText(_translate("MainWindow", "PushButton"))
+        self.sync_status.setText(_translate("MainWindow", "Sync Status"))
+        self.docker_console_log.setText(_translate("MainWindow", "Console Log"))
+        self.disk_usage.setText(_translate("MainWindow", "Disk Usage"))
         self.button_fast_sync.setText(_translate("MainWindow", "Fast Sync"))
         self.button_quagga_restart.setText(_translate("MainWindow", "Quagga Restart"))
         self.button_send_command.setText(_translate("MainWindow", "Send Command"))
