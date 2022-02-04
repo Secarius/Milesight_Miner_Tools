@@ -7,54 +7,58 @@ import psutil
 import pathlib
 import time
 import os
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QMovie
 import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtGui import QIcon, QPixmap
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.setWindowTitle("Updateing ...")
-        MainWindow.resize(250, 250)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
+class App(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.title = 'Miner Tools Updater'
+        self.left = 500
+        self.top = 500
+        self.width = 640
+        self.height = 480
+        self.initUI()
+    
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+    
+        # Create widget
+        label = QLabel(self)
+        pixmap = QPixmap('assets/update.jpeg')
+        label.setPixmap(pixmap)
+        self.resize(pixmap.width(),pixmap.height())
+        
+        self.show()
+        time.sleep(5)
+        update_start()
 
-        # create label
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(25, 25, 200, 200))
-        self.label.setMinimumSize(QtCore.QSize(200, 200))
-        self.label.setMaximumSize(QtCore.QSize(200, 200))
-        self.label.setObjectName("label")
-
-        # add label to main window
-        MainWindow.setCentralWidget(self.centralwidget)
-
-        # set qmovie as label
-        self.movie = QMovie("assets/updating.gif")
-        self.label.setMovie(self.movie)
-        self.movie.start()
-        updatepath = pathlib.Path().resolve()
-        print(updatepath)
-        wait_until()
-        print("unzipping .......................")
-        with ZipFile('miner-update.zip', 'r') as zipOjk:
-            zipOjk.extractall()
-        updater = str(updatepath)
-        print(updater + "\\MinerTools.exe")
-        Popen('%s\\MinerTools.exe' % updater)
-        myfile="miner-update.zip"
-        ## If file exists, delete it ##
-        if os.path.isfile(myfile):
-            os.remove(myfile)
-        else:    ## Show an error ##
-            print("Error: %s file not found" % myfile)
-        myfile="updater.zip"
-        ## If file exists, delete it ##
-        if os.path.isfile(myfile):
-            os.remove(myfile)
-        else:    ## Show an error ##
-            print("Error: %s file not found" % myfile)
-        sys.exit()
+def update_start():
+    print("Update Started")
+    updatepath = pathlib.Path().resolve()
+    print(updatepath)
+    wait_until()
+    print("unzipping .......................")
+    with ZipFile('miner-update.zip', 'r') as zipOjk:
+        zipOjk.extractall()
+    updater = str(updatepath)
+    print(updater + "\\MinerTools.exe")
+    Popen('%s\\MinerTools.exe' % updater)
+    myfile="miner-update.zip"
+    ## If file exists, delete it ##
+    if os.path.isfile(myfile):
+        os.remove(myfile)
+    else:    ## Show an error ##
+        print("Error: %s file not found" % myfile)
+    myfile="updater.zip"
+    ## If file exists, delete it ##
+    if os.path.isfile(myfile):
+        os.remove(myfile)
+    else:    ## Show an error ##
+        print("Error: %s file not found" % myfile)
+    sys.exit()
 
 def wait_until():
     while True:
@@ -65,13 +69,8 @@ def wait_until():
             print("läuft nicht")
             return False
 
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(window)
-    window.show()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = App()
     sys.exit(app.exec_())
 
