@@ -6,6 +6,7 @@ from subprocess import Popen
 import psutil
 import pathlib
 import time
+import os
 
 def wait_until():
     while True:
@@ -23,10 +24,24 @@ f.write(str(updatepath))
 f.close
 wait_until()
 print("unzipping .......................")
-with ZipFile('miner-update.zip', 'r') as zipOjk:
-    zipOjk.extractall()
+#with ZipFile('miner-update.zip', 'r') as zipOjk:
+#    zipOjk.extractall()
 f = open("endupdate.txt","w+")
 f.write("geupdated")
 f.close
-#Popen('%s\MinerTools.exe' % updatepath)
+updater = str(updatepath)
+print(updater + "\\MinerTools.exe")
+Popen('%s\\MinerTools.exe' % updater)
+myfile="miner-update.zip"
+## If file exists, delete it ##
+if os.path.isfile(myfile):
+    os.remove(myfile)
+else:    ## Show an error ##
+    print("Error: %s file not found" % myfile)
+myfile="updater.zip"
+## If file exists, delete it ##
+if os.path.isfile(myfile):
+    os.remove(myfile)
+else:    ## Show an error ##
+    print("Error: %s file not found" % myfile)
 sys.exit()
