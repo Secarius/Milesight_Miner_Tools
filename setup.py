@@ -5,7 +5,7 @@ from cx_Freeze import setup, Executable
 
 #Application information
 name = 'Miner Controler'
-version = '1.0.6'
+version = '1.1.0'
 author = 'Milesight'
 author_email = 'sample@example.xxx'
 url = 'http://example.xxx'
@@ -22,7 +22,7 @@ build_exe_options = {
     'packages': ['os'],
     # 'excludes': [''], #Exclude tkinter as it is not used
     # 'includes': [''],
-    'include_files': ['assets/'],
+    'include_files': ['assets/','miner-update.exe'],
     'include_msvcr': True #Since it uses PySide, it cannot be started unless Microsoft's C runtime is included.
 }
 

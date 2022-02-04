@@ -11,6 +11,9 @@ from tkinter import messagebox
 from numpy import genfromtxt, loadtxt
 import os
 import src.ssh_comms
+from zipfile import ZipFile
+import sys
+import subprocess
 
 #*************************** BUTTON FUNCTIONS ***************************
 class Window(QMainWindow, Ui_MainWindow):
