@@ -311,26 +311,27 @@ class Ui_MainWindow(object):
             online_version = zippackage.replace(".zip", "")
             online_version = online_version.replace("installer/minertools_", "")
             if (version.parse(version_build) < version.parse(online_version)):
-                logf.write("Debug")
+                self.update_fbdata('New Version availible!\n')
                 updateurl = "https://github.com/Secarius/Milesight_Miner_Tools/raw/main/%s" % zippackage
                 reply = QtWidgets.QMessageBox.question(self, 'Message',
                     "New Update availible. Do you want to update?", QtWidgets.QMessageBox.Yes | 
                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
-                    self.update_fbdata(f'Downloading new Version....')
+                    self.update_fbdata('Downloading new Version....\n')
                     urllib.request.urlretrieve(updateurl,"miner-update.zip")
-                    self.update_fbdata(f'Downloading updater....')
+                    self.update_fbdata('Downloading updater....\n')
                     urllib.request.urlretrieve("https://github.com/Secarius/Milesight_Miner_Tools/raw/main/installer/updater.zip","updater.zip")
-                    self.update_fbdata(f'Extracting updater....')
+                    self.update_fbdata('Extracting updater....\n')
                     with ZipFile('updater.zip', 'r') as zipOjk:
                         zipOjk.extractall()
                     updatepath = pathlib.Path().resolve()
                     updater = str(updatepath)
                     print(updater + "\\updater\miner-update.exe")
-                    self.update_fbdata(f'Starting Update....')
+                    self.update_fbdata('Starting Update....\n')
                     Popen("%s\\updater\miner-update.exe" % updater)
                     sys.exit()
             else:
+                self.update_fbdata('No Update availible!\n')
                 reply = QtWidgets.QMessageBox.question(self, 'Message',
                     "No Update available", QtWidgets.QMessageBox.Ok)
         except Exception as e:     # most generic exception you can catch
