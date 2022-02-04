@@ -24,8 +24,8 @@ f.write(str(updatepath))
 f.close
 wait_until()
 print("unzipping .......................")
-#with ZipFile('miner-update.zip', 'r') as zipOjk:
-#    zipOjk.extractall()
+with ZipFile('miner-update.zip', 'r') as zipOjk:
+    zipOjk.extractall()
 f = open("endupdate.txt","w+")
 f.write("geupdated")
 f.close
