@@ -47,7 +47,7 @@ import webbrowser
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
 
-version_build = "1.1.6"
+version_build = "1.1.7"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -455,7 +455,6 @@ class Ui_MainWindow(object):
                 self.log += f'#{cmd}\n{out}'
                 if stderr != '': self.log += f'STDERR: {stderr}'
         self.update_fbdata('*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.save()
         self.s.disconnect()
 
@@ -579,7 +578,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
 
@@ -590,7 +588,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_miner_info_cmd(self):
@@ -600,7 +597,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_restart_miner_cmd(self):
@@ -610,7 +606,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_sync_status_log_cmd(self):
@@ -620,7 +615,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_disk_usage_cmd(self):
@@ -630,7 +624,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def docker_console_log_cmd(self):
@@ -640,7 +633,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_peer_book_cmd(self):
@@ -650,7 +642,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_line_command_cmd(self):
@@ -660,7 +651,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 
     def run_height_compare(self):
@@ -670,7 +660,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
         self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
         self.s.disconnect()
 # Connect Sequence
     def conn_sequence(self):
@@ -706,7 +695,6 @@ class Ui_MainWindow(object):
         self.clear_fbdata()
         if not self.s.is_alive() or connection == None:
             self.update_fbdata('Connection Error.\nCheck username and password in options.config in files/ folder.')
-            self.text_console.ensureCursorVisible()
             return None
         return True
 
