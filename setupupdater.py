@@ -5,7 +5,7 @@ from cx_Freeze import setup, Executable
 
 #Application information
 name = 'Miner Tools Updater'
-version = '1.0.0'
+version = '1.0.1'
 author = 'Milesight'
 author_email = 'sample@example.xxx'
 url = 'http://example.xxx'

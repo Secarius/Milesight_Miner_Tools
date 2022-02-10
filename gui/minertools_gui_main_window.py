@@ -44,7 +44,10 @@ import psutil
 import time
 import webbrowser
 
-version_build = "1.1.5"
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
+QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
+
+version_build = "1.1.6"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -709,7 +712,6 @@ class Ui_MainWindow(object):
 
     def update_fbdata(self, d):
         self.text_console.insertPlainText(d)
-        #self.text_console.verticalScrollBar().setValue(self.text_console.verticalScrollBar().maximum())
         self.text_console.ensureCursorVisible()
 
     def clear_fbdata(self):
