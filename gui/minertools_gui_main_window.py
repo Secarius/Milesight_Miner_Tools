@@ -42,7 +42,7 @@ import psutil
 import time
 import webbrowser
 
-version_build = "1.1.8"
+version_build = "1.1.9"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -57,6 +57,17 @@ except IOError:
 finally:
     f.close()
 minerconfig = genfromtxt(optionspath, comments="#", delimiter=",", dtype='unicode')
+
+snapconfspath = '%s\\snapconf.config' % dir_path
+try:
+    f = open(snapconfspath)
+except IOError:
+    print("File not accessible")
+    f = open(snapconfspath,"w+")
+    f.write("http://snapshots-wtf.sensecapmx.cloud/latest-snap.json\nhttp://snapshots-wtf.sensecapmx.cloud/snap-")
+    f.close
+finally:
+    f.close()
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -273,9 +284,12 @@ class Ui_MainWindow(object):
         self.action_Edit_Config.setObjectName("action_Edit_Config")
         self.action_Export_Config = QtWidgets.QAction(MainWindow)
         self.action_Export_Config.setObjectName("action_Export_Config")
+        self.action_Edit_Snapshot = QtWidgets.QAction(MainWindow)
+        self.action_Edit_Snapshot.setObjectName("action_Edit_Snapshot")
         self.menuFile.addAction(self.action_Edit_Config)
         self.menuFile.addAction(self.action_Import_Config)
         self.menuFile.addAction(self.action_Export_Config)
+        self.menuFile.addAction(self.action_Edit_Snapshot)
         self.menuFile.addAction(self.action_Exit)
         self.menubar.addAction(self.menuFile.menuAction())
 
@@ -287,6 +301,7 @@ class Ui_MainWindow(object):
         self.action_Export_Config.triggered.connect(self.export_config)
         self.action_Import_Config.triggered.connect(self.import_config)
         self.action_Exit.triggered.connect(self.exit_window)
+        self.action_Edit_Snapshot.triggered.connect(self.edit_snapshot)
 
         self.savepath = 'log.txt'
         self.s = ssh_comms.ssh_comms()
@@ -381,6 +396,10 @@ class Ui_MainWindow(object):
         os.system('notepad.exe ' + optionspath)
         self.updatecombo()
 
+    def edit_snapshot(self):
+        os.system('notepad.exe ' + snapconfspath)
+        self.updatecombo()
+
     def export_config(self):
         name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File')
         if not name[0] == '':
@@ -409,12 +428,24 @@ class Ui_MainWindow(object):
     def run_sync_commands(self):
         self.update_fbdata('Syncing . . . This might take a minute . . .\n')
         self.log = ''
+        print(snapconfspath)
+        f = open(snapconfspath)
+        snaplines = f.readlines()
+        snapurl = snaplines[0]
+        snapurlsnap = snaplines[1]
+        f.close
+        print("line1")
+        print(snapurl)
+        print("line2")
+        print(snapurlsnap)
+        print("curl %s" % snapurl)
+        print("cd /mnt/mmcblk0p1/miner_data/snap && wget %s" % snapurlsnap)
         height = '** ERROR WHILE EXECUTING CURL CMD **'
         cmds = ['docker exec miner miner repair sync_pause',
                 'docker exec miner miner repair sync_cancel',
-                'curl http://snapshots-wtf.sensecapmx.cloud/latest-snap.json',
+                'curl %s' % snapurl,
                 'cd /mnt/mmcblk0p1/miner_data/snap && rm snap-*',
-                'cd /mnt/mmcblk0p1/miner_data/snap && wget http://snapshots-wtf.sensecapmx.cloud/snap-',
+                'cd /mnt/mmcblk0p1/miner_data/snap && wget %s' % snapurlsnap,
                 'docker exec miner miner snapshot load /var/data/snap/snap- &',
                 'docker exec miner miner repair sync_state',
                 'docker exec miner miner repair sync_resume']
@@ -649,13 +680,27 @@ class Ui_MainWindow(object):
         self.s.disconnect()
 
     def run_height_compare(self):
-        cmd = 'echo "Current Miner height: " && docker exec miner miner info height | sed \'s/^.\{7\}//\' && echo "Cur. Blockchain height:" && curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{18\}//\' | sed \'s/.\{2\}$//\' && echo'
-        self.update_fbdata(f'Executing height compare....')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
+        self.update_fbdata('Comparing Block height\n')
+        self.log = ''
+        height = '** ERROR WHILE EXECUTING CURL CMD **'
+        cmds = ['echo "\nCurrent Miner height: " && docker exec miner miner info height | sed \'s/^.\{7\}//\'',
+                'echo "\nCur. Blockchain height:" && curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{18\}//\' | sed \'s/.\{2\}$//\'',
+                'echo "\n\nDifference between Miner and Blockchain:"',
+                'expr `docker exec miner miner info height | sed \'s/^.\{7\}//\'` - `curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{18\}//\' | sed \'s/.\{2\}$//\'`']
+        for idx, cmd in enumerate(cmds):
+            #self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.log += f'#{cmd}\n{out}'
+            if stderr != '': self.log += f'STDERR: {stderr}'
+            chk = 'failed' in out
+            self.text_console.ensureCursorVisible()
+        self.update_fbdata('*** DONE ***\n')
+        self.text_console.ensureCursorVisible()
+        self.save()
         self.s.disconnect()
+
 # Connect Sequence
     def conn_sequence(self):
         combopos = self.combo_select_miner.currentIndex()
@@ -751,3 +796,4 @@ class Ui_MainWindow(object):
         self.action_Edit_Config.setText(_translate("MainWindow", "Edit Config"))
         self.action_Export_Config.setText(_translate("MainWindow", "Export Config"))
         self.action_Import_Config.setText(_translate("MainWindow", "Import Config"))
+        self.action_Edit_Snapshot.setText(_translate("MainWindow", "Edit Snap URL"))
