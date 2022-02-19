@@ -1,17 +1,16 @@
+import sys
+import os
+from tkinter import messagebox
+from zipfile import ZipFile
+import subprocess
+import time
+import psutil
 from PyQt5.uic import loadUi
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QDialog, QMessageBox
-from gui.minertools_gui_main_window import Ui_MainWindow
-from tkinter import messagebox
 from numpy import genfromtxt, loadtxt
-import os
+from gui.minertools_gui_main_window import Ui_MainWindow
 import src.ssh_comms
-from zipfile import ZipFile
-import sys
-import subprocess
-import psutil
-import time
-
 #*************************** BUTTON FUNCTIONS ***************************
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons

@@ -26,7 +26,7 @@ from fnmatch import fnmatch
 from pprint import pprint
 import requests
 import json
-from urllib import request
+import urllib.request
 from email.mime import image
 import threading
 import ipaddress
@@ -38,11 +38,10 @@ import pathlib
 from assets import images_rc
 from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
-import psutil
 import time
 import webbrowser
 
-version_build = "1.2.0"
+version_build = "1.2.1"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
