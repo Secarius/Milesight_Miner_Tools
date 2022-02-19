@@ -3,11 +3,11 @@
 ## Build Programm
 
 ```bash
-python setup.py bdist_msi
+python setupwin.py bdist_msi
 ```
 
 ```bash
-python setup.py build
+python setupwin.py build
 ```
 
 ```bash

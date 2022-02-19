@@ -42,7 +42,7 @@ import psutil
 import time
 import webbrowser
 
-version_build = "1.1.9"
+version_build = "1.2.0"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -94,15 +94,15 @@ class Ui_MainWindow(object):
         font.setKerning(True)
         self.button_info.setFont(font)
         self.button_info.setObjectName("button_info")
-        self.button_compare_height = QtWidgets.QPushButton(self.centralwidget)
-        self.button_compare_height.setGeometry(QtCore.QRect(245, 662, 111, 41))
+        self.sync_status = QtWidgets.QPushButton(self.centralwidget)
+        self.sync_status.setGeometry(QtCore.QRect(245, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
         font.setKerning(True)
-        self.button_compare_height.setFont(font)
-        self.button_compare_height.setObjectName("button_compare_height")
+        self.sync_status.setFont(font)
+        self.sync_status.setObjectName("sync_status")
         self.button_peer_book = QtWidgets.QPushButton(self.centralwidget)
         self.button_peer_book.setGeometry(QtCore.QRect(365, 662, 111, 41))
         font = QtGui.QFont()
@@ -121,15 +121,15 @@ class Ui_MainWindow(object):
         font.setKerning(True)
         self.button_restart_miner.setFont(font)
         self.button_restart_miner.setObjectName("button_restart_miner")
-        self.sync_status = QtWidgets.QPushButton(self.centralwidget)
-        self.sync_status.setGeometry(QtCore.QRect(725, 662, 111, 41))
+        self.sync_resume = QtWidgets.QPushButton(self.centralwidget)
+        self.sync_resume.setGeometry(QtCore.QRect(725, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
         font.setKerning(True)
-        self.sync_status.setFont(font)
-        self.sync_status.setObjectName("docker_console_log")
+        self.sync_resume.setFont(font)
+        self.sync_resume.setObjectName("sync_resume")
         self.docker_console_log = QtWidgets.QPushButton(self.centralwidget)
         self.docker_console_log.setGeometry(QtCore.QRect(605, 662, 111, 41))
         font = QtGui.QFont()
@@ -314,7 +314,7 @@ class Ui_MainWindow(object):
         self.button_status.clicked.connect(self.status_but_func)
         self.button_info.clicked.connect(self.miner_info_func)
         self.button_peer_book.clicked.connect(self.run_peer_book_func)
-        self.button_compare_height.clicked.connect(self.run_height_compare_func)
+        self.sync_resume.clicked.connect(self.sync_resume_func)
         self.sync_status.clicked.connect(self.sync_status_func)
         self.docker_console_log.clicked.connect(self.docker_console_log_func)
         self.disk_usage.clicked.connect(self.disk_usage_func)
@@ -586,11 +586,11 @@ class Ui_MainWindow(object):
         else:
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
 
-    def run_height_compare_func(self):
+    def sync_resume_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
                 return
-            self.tmpthread = threading.Thread(target=self.run_height_compare)
+            self.tmpthread = threading.Thread(target=self.run_sync_resume)
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
@@ -608,11 +608,25 @@ class Ui_MainWindow(object):
 
 
     def run_status_cmd(self):
-        cmd = 'docker exec miner miner info p2p_status'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+        cmds = ['docker exec miner miner info p2p_status',
+                'curl -k --connect-timeout 10 https://api.helium.io/v1/blocks/height']
+        self.update_fbdata(f'${cmds[0]}\n')
+        for idx, cmd in enumerate(cmds):
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            if idx == 0:
+                self.update_fbdata(out)
+                if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+                miner_height = int(out.split('height')[1].split('|')[1].split('|')[0])
+            elif idx == 1:
+                blockchain_height = int(out.split('height":')[1].split('}')[0])
+        diff = miner_height - blockchain_height
+        self.update_fbdata('Blockchainheight: %s\n\n' % blockchain_height)
+        if diff > 0:
+            self.update_fbdata(f'-> Miner {diff} blocks ahead of the blockchain! (SYNCED)\n')
+        elif diff < 0:
+            self.update_fbdata(f'-> Miner trailing {diff} blocks behind the blockchain. (SYNCING)\n')
+        else:
+            self.update_fbdata(f'-> Miner in complete sync with the blockchain! (SYNCED)\n')
         self.update_fbdata(f'*** DONE ***\n')
         self.s.disconnect()
 
@@ -679,26 +693,13 @@ class Ui_MainWindow(object):
         self.update_fbdata(f'*** DONE ***\n')
         self.s.disconnect()
 
-    def run_height_compare(self):
-        self.update_fbdata('Comparing Block height\n')
-        self.log = ''
-        height = '** ERROR WHILE EXECUTING CURL CMD **'
-        cmds = ['echo "\nCurrent Miner height: " && docker exec miner miner info height | sed \'s/^.\{7\}//\'',
-                'echo "\nCur. Blockchain height:" && curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{18\}//\' | sed \'s/.\{2\}$//\'',
-                'echo "\n\nDifference between Miner and Blockchain:"',
-                'expr `docker exec miner miner info height | sed \'s/^.\{7\}//\'` - `curl -k https://api.helium.io/v1/blocks/height 2> /dev/null | sed \'s/^.\{18\}//\' | sed \'s/.\{2\}$//\'`']
-        for idx, cmd in enumerate(cmds):
-            #self.update_fbdata(f'${cmd}\n')
-            out, stderr = self.s.exec_cmd(cmd=cmd)
-            self.update_fbdata(out)
-            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-            self.log += f'#{cmd}\n{out}'
-            if stderr != '': self.log += f'STDERR: {stderr}'
-            chk = 'failed' in out
-            self.text_console.ensureCursorVisible()
-        self.update_fbdata('*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
-        self.save()
+    def run_sync_resume(self):
+        cmd = 'docker exec miner miner repair sync_resume'
+        self.update_fbdata(f'${cmd}\n')
+        out, stderr = self.s.exec_cmd(cmd=cmd)
+        self.update_fbdata(out)
+        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+        self.update_fbdata(f'*** DONE ***\n')
         self.s.disconnect()
 
 # Connect Sequence
@@ -774,7 +775,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Miner Tools"))
         self.button_status.setText(_translate("MainWindow", "Status"))
         self.button_info.setText(_translate("MainWindow", "Info"))
-        self.button_compare_height.setText(_translate("MainWindow", "Compare Height"))
+        self.sync_resume.setText(_translate("MainWindow", "Resume Sync"))
         self.button_peer_book.setText(_translate("MainWindow", "Peer Book"))
         self.button_restart_miner.setText(_translate("MainWindow", "Restart Miner"))
         self.sync_status.setText(_translate("MainWindow", "Sync Status"))
