@@ -34,14 +34,13 @@ import socket
 from numpy import genfromtxt
 from packaging import version
 import pathlib
-#####################################################################
 from assets import images_rc
 from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
 import time
 import webbrowser
 
-version_build = "1.2.1"
+version_build = "1.2.2"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -76,7 +75,7 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.button_status = QtWidgets.QPushButton(self.centralwidget)
-        self.button_status.setGeometry(QtCore.QRect(5, 662, 111, 41))
+        self.button_status.setGeometry(QtCore.QRect(5, 662, 60, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -85,7 +84,7 @@ class Ui_MainWindow(object):
         self.button_status.setFont(font)
         self.button_status.setObjectName("button_status")
         self.button_info = QtWidgets.QPushButton(self.centralwidget)
-        self.button_info.setGeometry(QtCore.QRect(125, 662, 111, 41))
+        self.button_info.setGeometry(QtCore.QRect(72, 662, 60, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -94,7 +93,7 @@ class Ui_MainWindow(object):
         self.button_info.setFont(font)
         self.button_info.setObjectName("button_info")
         self.sync_status = QtWidgets.QPushButton(self.centralwidget)
-        self.sync_status.setGeometry(QtCore.QRect(245, 662, 111, 41))
+        self.sync_status.setGeometry(QtCore.QRect(139, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -103,7 +102,7 @@ class Ui_MainWindow(object):
         self.sync_status.setFont(font)
         self.sync_status.setObjectName("sync_status")
         self.button_peer_book = QtWidgets.QPushButton(self.centralwidget)
-        self.button_peer_book.setGeometry(QtCore.QRect(365, 662, 111, 41))
+        self.button_peer_book.setGeometry(QtCore.QRect(257, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -112,7 +111,7 @@ class Ui_MainWindow(object):
         self.button_peer_book.setFont(font)
         self.button_peer_book.setObjectName("button_peer_book")
         self.button_restart_miner = QtWidgets.QPushButton(self.centralwidget)
-        self.button_restart_miner.setGeometry(QtCore.QRect(485, 662, 111, 41))
+        self.button_restart_miner.setGeometry(QtCore.QRect(375, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -120,8 +119,17 @@ class Ui_MainWindow(object):
         font.setKerning(True)
         self.button_restart_miner.setFont(font)
         self.button_restart_miner.setObjectName("button_restart_miner")
+        self.button_restart_lora = QtWidgets.QPushButton(self.centralwidget)
+        self.button_restart_lora.setGeometry(QtCore.QRect(493, 662, 111, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setKerning(True)
+        self.button_restart_lora.setFont(font)
+        self.button_restart_lora.setObjectName("button_restart_lora")
         self.sync_resume = QtWidgets.QPushButton(self.centralwidget)
-        self.sync_resume.setGeometry(QtCore.QRect(725, 662, 111, 41))
+        self.sync_resume.setGeometry(QtCore.QRect(729, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -130,7 +138,7 @@ class Ui_MainWindow(object):
         self.sync_resume.setFont(font)
         self.sync_resume.setObjectName("sync_resume")
         self.docker_console_log = QtWidgets.QPushButton(self.centralwidget)
-        self.docker_console_log.setGeometry(QtCore.QRect(605, 662, 111, 41))
+        self.docker_console_log.setGeometry(QtCore.QRect(611, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -139,7 +147,7 @@ class Ui_MainWindow(object):
         self.docker_console_log.setFont(font)
         self.docker_console_log.setObjectName("sync_status")
         self.disk_usage = QtWidgets.QPushButton(self.centralwidget)
-        self.disk_usage.setGeometry(QtCore.QRect(845, 662, 111, 41))
+        self.disk_usage.setGeometry(QtCore.QRect(847, 662, 111, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -322,6 +330,8 @@ class Ui_MainWindow(object):
         self.button_check_update.clicked.connect(self.get_url_paths)
         self.button_open_website.clicked.connect(self.run_open_miner_website)
         self.button_restart_miner.clicked.connect(self.restart_miner_func)
+        self.line_command.returnPressed.connect(self.run_command_func)
+        self.button_restart_lora.clicked.connect(self.restart_lora_func)
 
     def get_url_paths(self):
         #logf = open("error.log", "w")
@@ -524,7 +534,6 @@ class Ui_MainWindow(object):
         else:
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
 
-
     def update_but_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
@@ -544,7 +553,17 @@ class Ui_MainWindow(object):
             self.tmpthread.start()
         else:
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
-    
+
+    def restart_lora_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_restart_lora_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
     def status_but_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
@@ -605,7 +624,6 @@ class Ui_MainWindow(object):
         self.update_fbdata(f'*** DONE ***\n')
         self.s.disconnect()
 
-
     def run_status_cmd(self):
         cmds = ['docker exec miner miner info p2p_status',
                 'curl -k --connect-timeout 10 https://api.helium.io/v1/blocks/height']
@@ -619,13 +637,27 @@ class Ui_MainWindow(object):
             elif idx == 1:
                 blockchain_height = int(out.split('height":')[1].split('}')[0])
         diff = miner_height - blockchain_height
-        self.update_fbdata('Blockchainheight: %s\n\n' % blockchain_height)
+        self.update_fbdata('Blockchain height: %s\n' % blockchain_height)
+        self.update_fbdata('Miner height: %s\n\n' % miner_height)
         if diff > 0:
             self.update_fbdata(f'-> Miner {diff} blocks ahead of the blockchain! (SYNCED)\n')
         elif diff < 0:
             self.update_fbdata(f'-> Miner trailing {diff} blocks behind the blockchain. (SYNCING)\n')
         else:
             self.update_fbdata(f'-> Miner in complete sync with the blockchain! (SYNCED)\n')
+        self.update_fbdata(f'*** DONE ***\n')
+        self.s.disconnect()
+
+    def run_restart_lora_cmd(self):
+        cmds = ['/etc/init.d/lora_pkt_fwd stop',
+                '/etc/init.d/lora_pkt_fwd start',
+                'ps | grep lora_pkt_fwd']
+        self.update_fbdata(f'Restarting LoRa Package Forwarder...\n')
+        for idx, cmd in enumerate(cmds):
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            self.update_fbdata(f'\n')
         self.update_fbdata(f'*** DONE ***\n')
         self.s.disconnect()
 
@@ -777,13 +809,14 @@ class Ui_MainWindow(object):
         self.sync_resume.setText(_translate("MainWindow", "Resume Sync"))
         self.button_peer_book.setText(_translate("MainWindow", "Peer Book"))
         self.button_restart_miner.setText(_translate("MainWindow", "Restart Miner"))
+        self.button_restart_lora.setText(_translate("MainWindow", "Restart Lora"))
         self.sync_status.setText(_translate("MainWindow", "Sync Status"))
         self.docker_console_log.setText(_translate("MainWindow", "Console Log"))
         self.disk_usage.setText(_translate("MainWindow", "Disk Usage"))
         self.button_fast_sync.setText(_translate("MainWindow", "Fast Sync"))
         self.button_quagga_restart.setText(_translate("MainWindow", "Quagga Restart"))
         self.button_send_command.setText(_translate("MainWindow", "Send Command"))
-        self.line_command.setText(_translate("MainWindow", "docker exec miner miner info height && curl -k https://api.helium.io/v1/blocks/height"))
+        self.line_command.setText(_translate("MainWindow", "docker exec miner miner versions"))
         self.label_select_miner.setText(_translate("MainWindow", "Select Miner:"))
         self.label_version.setText(_translate("MainWindow", "Version:"))
         self.label_version_numer.setText(_translate("MainWindow", version_build))
