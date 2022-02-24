@@ -626,7 +626,8 @@ class Ui_MainWindow(object):
 
     def run_status_cmd(self):
         cmds = ['docker exec miner miner info p2p_status',
-                'curl -k --connect-timeout 10 https://api.helium.io/v1/blocks/height']
+                'curl -k --connect-timeout 10 https://api.helium.io/v1/blocks/height',
+                'cat /sys/class/thermal/thermal_zone0/temp']
         self.update_fbdata(f'${cmds[0]}\n')
         for idx, cmd in enumerate(cmds):
             out, stderr = self.s.exec_cmd(cmd=cmd)
@@ -636,9 +637,13 @@ class Ui_MainWindow(object):
                 miner_height = int(out.split('height')[1].split('|')[1].split('|')[0])
             elif idx == 1:
                 blockchain_height = int(out.split('height":')[1].split('}')[0])
+            elif idx == 2:
+                cpu_temp = int(out)
+        temp = cpu_temp / 1000
+        self.update_fbdata(f'CPU Temperature: {temp}°C\n\n')
         diff = miner_height - blockchain_height
-        self.update_fbdata('Blockchain height: %s\n' % blockchain_height)
-        self.update_fbdata('Miner height: %s\n\n' % miner_height)
+        self.update_fbdata(f'Blockchain height: %s\n' % blockchain_height)
+        self.update_fbdata(f'Miner height: %s\n\n' % miner_height)
         if diff > 0:
             self.update_fbdata(f'-> Miner {diff} blocks ahead of the blockchain! (SYNCED)\n')
         elif diff < 0:
@@ -652,7 +657,7 @@ class Ui_MainWindow(object):
         cmds = ['/etc/init.d/lora_pkt_fwd stop',
                 '/etc/init.d/lora_pkt_fwd start',
                 'ps | grep lora_pkt_fwd']
-        self.update_fbdata(f'Restarting LoRa Package Forwarder...\n')
+        self.update_fbdata(f'Restarting LoRA Packet Forwarder...\n')
         for idx, cmd in enumerate(cmds):
             self.update_fbdata(f'${cmd}\n')
             out, stderr = self.s.exec_cmd(cmd=cmd)
