@@ -40,7 +40,7 @@ from paramiko import SSHClient, AutoAddPolicy
 import time
 import webbrowser
 
-version_build = "1.2.2"
+version_build = "1.2.3"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -54,8 +54,13 @@ except IOError:
     f.close
 finally:
     f.close()
-minerconfig = genfromtxt(optionspath, comments="#", delimiter=",", dtype='unicode')
-
+try:
+    minerconfig = genfromtxt(optionspath, skip_header=1, delimiter=",", dtype='unicode', loose=True, invalid_raise=False)
+except IOError:
+    reply = QtWidgets.QMessageBox.question(self, 'Message',
+    "There is error with the configfile\nIts located in: %appdata%\MinerTools", QtWidgets.QMessageBox.Ok)
+finally:
+    print('test')
 snapconfspath = '%s\\snapconf.config' % dir_path
 try:
     f = open(snapconfspath)
@@ -381,7 +386,11 @@ class Ui_MainWindow(object):
             f.close
         finally:
             f.close()
-        minerconfig = genfromtxt(optionspath, comments="#", delimiter=",", dtype='unicode')
+        try:
+            minerconfig = genfromtxt(optionspath, skip_header=1, delimiter=",", dtype='unicode', loose=True, invalid_raise=False)
+        except IOError:
+                reply = QtWidgets.QMessageBox.question(self, 'Message',
+                "There is error with the configfile\nIts located in: %appdata%\MinerTools", QtWidgets.QMessageBox.Ok)
         self.combo_select_miner.clear()
         if len(minerconfig.shape) > 1:
             for x in range(len(minerconfig)):
