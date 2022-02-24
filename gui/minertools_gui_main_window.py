@@ -39,8 +39,9 @@ from src import ssh_comms
 from paramiko import SSHClient, AutoAddPolicy
 import time
 import webbrowser
+import numpy
 
-version_build = "1.2.3"
+version_build = "1.2.4"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -57,10 +58,9 @@ finally:
 try:
     minerconfig = genfromtxt(optionspath, skip_header=1, delimiter=",", dtype='unicode', loose=True, invalid_raise=False)
 except IOError:
-    reply = QtWidgets.QMessageBox.question(self, 'Message',
-    "There is error with the configfile\nIts located in: %appdata%\MinerTools", QtWidgets.QMessageBox.Ok)
+    print('Config Error')
 finally:
-    print('test')
+    print('done')
 snapconfspath = '%s\\snapconf.config' % dir_path
 try:
     f = open(snapconfspath)
@@ -357,16 +357,19 @@ class Ui_MainWindow(object):
                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
                     self.update_fbdata('Downloading new Version....\n')
+                    print('Downloading new Version')
                     urllib.request.urlretrieve(updateurl,"miner-update.zip")
                     self.update_fbdata('Downloading updater....\n')
+                    print('Downloading updater')
                     urllib.request.urlretrieve("https://github.com/Secarius/Milesight_Miner_Tools/raw/main/installer/updater.zip","updater.zip")
                     self.update_fbdata('Extracting updater....\n')
+                    print('extraction updater....')
                     with ZipFile('updater.zip', 'r') as zipOjk:
                         zipOjk.extractall()
                     updatepath = pathlib.Path().resolve()
                     updater = str(updatepath)
-                    print(updater + "\\updater\miner-update.exe")
                     self.update_fbdata('Starting Update....\n')
+                    print('starting update....')
                     Popen("%s\\updater\miner-update.exe" % updater)
                     sys.exit()
             else:
@@ -377,6 +380,7 @@ class Ui_MainWindow(object):
             print(str(e))
 
     def updatecombo(self):
+        global minerconfig
         try:
             f = open(optionspath)
         except IOError:
@@ -446,18 +450,11 @@ class Ui_MainWindow(object):
     def run_sync_commands(self):
         self.update_fbdata('Syncing . . . This might take a minute . . .\n')
         self.log = ''
-        print(snapconfspath)
         f = open(snapconfspath)
         snaplines = f.readlines()
         snapurl = snaplines[0]
         snapurlsnap = snaplines[1]
         f.close
-        print("line1")
-        print(snapurl)
-        print("line2")
-        print(snapurlsnap)
-        print("curl %s" % snapurl)
-        print("cd /mnt/mmcblk0p1/miner_data/snap && wget %s" % snapurlsnap)
         height = '** ERROR WHILE EXECUTING CURL CMD **'
         cmds = ['docker exec miner miner repair sync_pause',
                 'docker exec miner miner repair sync_cancel',
