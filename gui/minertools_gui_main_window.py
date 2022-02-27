@@ -41,7 +41,7 @@ import time
 import webbrowser
 import numpy
 
-version_build = "1.2.4"
+version_build = "1.2.5"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -250,6 +250,15 @@ class Ui_MainWindow(object):
         font.setKerning(True)
         self.button_config_reload.setFont(font)
         self.button_config_reload.setObjectName("button_config_reload")
+        self.button_open_explorer = QtWidgets.QPushButton(self.centralwidget)
+        self.button_open_explorer.setGeometry(QtCore.QRect(665, 2, 111, 28))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setKerning(True)
+        self.button_open_explorer.setFont(font)
+        self.button_open_explorer.setObjectName("button_open_explorer")
         self.button_check_update = QtWidgets.QPushButton(self.centralwidget)
         self.button_check_update.setGeometry(QtCore.QRect(885, 2, 111, 28))
         font = QtGui.QFont()
@@ -337,6 +346,7 @@ class Ui_MainWindow(object):
         self.button_restart_miner.clicked.connect(self.restart_miner_func)
         self.line_command.returnPressed.connect(self.run_command_func)
         self.button_restart_lora.clicked.connect(self.restart_lora_func)
+        self.button_open_explorer.clicked.connect(self.open_explorer_func)
 
     def get_url_paths(self):
         #logf = open("error.log", "w")
@@ -621,12 +631,34 @@ class Ui_MainWindow(object):
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
     #*************************** BUTTON FUNCTIONS ***************************
 
+    def open_explorer_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_open_explorer_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
     def run_quagga_cmd(self):
         cmd = '/etc/init.d/quagga restart'
         self.update_fbdata(f'${cmd}\n')
         out, stderr = self.s.exec_cmd(cmd=cmd)
         self.update_fbdata(out)
         if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+        self.update_fbdata(f'*** DONE ***\n')
+        self.s.disconnect()
+
+    def run_open_explorer_cmd(self):
+        cmds = ['docker exec miner miner info onboarding']
+        self.update_fbdata(f'Generating Helium Explorer Link ...\n')
+        for idx, cmd in enumerate(cmds):
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            miner_addr = out.split('publicAddress')[1].split('|')[1].split('|')[0]
+        minerurl = 'https://explorer.helium.com/hotspots/%s' % miner_addr
+        webbrowser.open(minerurl, new=0, autoraise=True)
         self.update_fbdata(f'*** DONE ***\n')
         self.s.disconnect()
 
@@ -833,6 +865,7 @@ class Ui_MainWindow(object):
         self.label_version_numer.setText(_translate("MainWindow", version_build))
         self.button_config_edit.setText(_translate("MainWindow", "Edit Config"))
         self.button_config_reload.setText(_translate("MainWindow", "Reload Config"))
+        self.button_open_explorer.setText(_translate("MainWindow", "Helium Explorer"))
         self.button_check_update.setText(_translate("MainWindow", "Check Update"))
         self.button_open_website.setText(_translate("MainWindow", "Open in Browser"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
