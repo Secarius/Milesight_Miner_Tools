@@ -29,6 +29,8 @@ def main():
     win = Window()
     win.show()
     win.updatecombo()
+    win.check_update()
+    win.howto()
     sys.exit(app.exec())
 
 if __name__ == "__main__":

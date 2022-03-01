@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="Logo">
-    <file>milesight.png</file>
+    <file>milesight-logo.png</file>
+    <file>logo.png</file>
   </qresource>
 </RCC>

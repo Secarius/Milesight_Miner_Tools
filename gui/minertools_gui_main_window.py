@@ -41,7 +41,7 @@ import time
 import webbrowser
 import numpy
 
-version_build = "1.2.5"
+version_build = "1.2.6"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -214,7 +214,7 @@ class Ui_MainWindow(object):
         self.logo_milesight.setAutoFillBackground(False)
         self.logo_milesight.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/Logo/milesight.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/Logo/milesight-logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.logo_milesight.setIcon(icon)
         self.logo_milesight.setIconSize(QtCore.QSize(100, 200))
         self.logo_milesight.setCheckable(False)
@@ -286,7 +286,7 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.text_console.setFont(font)
         self.text_console.setObjectName("text_console")
-        self.text_console.setStyleSheet("background-color:#212121;color:#A4E87F;")
+        self.text_console.setStyleSheet("background-color:#212121;color:#A4E87F;background-image:url(:/Logo/logo.png);background-repeat:no-repeat;background-position:center right;")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1202, 21))
@@ -347,6 +347,7 @@ class Ui_MainWindow(object):
         self.line_command.returnPressed.connect(self.run_command_func)
         self.button_restart_lora.clicked.connect(self.restart_lora_func)
         self.button_open_explorer.clicked.connect(self.open_explorer_func)
+        self.logo_milesight.clicked.connect(self.open_milesight_func)
 
     def get_url_paths(self):
         #logf = open("error.log", "w")
@@ -360,34 +361,87 @@ class Ui_MainWindow(object):
             online_version = zippackage.replace(".zip", "")
             online_version = online_version.replace("installer/minertools_", "")
             if (version.parse(version_build) < version.parse(online_version)):
-                self.update_fbdata('New Version availible!\n')
+                self.update_fbdata(f'New Version availible!\n')
                 updateurl = "https://github.com/Secarius/Milesight_Miner_Tools/raw/main/%s" % zippackage
                 reply = QtWidgets.QMessageBox.question(self, 'Message',
                     "New Update availible. Do you want to update?", QtWidgets.QMessageBox.Yes | 
                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
-                    self.update_fbdata('Downloading new Version....\n')
+                    self.update_fbdata(f'Downloading new Version....\n')
                     print('Downloading new Version')
                     urllib.request.urlretrieve(updateurl,"miner-update.zip")
-                    self.update_fbdata('Downloading updater....\n')
+                    self.update_fbdata(f'Downloading updater....\n')
                     print('Downloading updater')
                     urllib.request.urlretrieve("https://github.com/Secarius/Milesight_Miner_Tools/raw/main/installer/updater.zip","updater.zip")
-                    self.update_fbdata('Extracting updater....\n')
+                    self.update_fbdata(f'Extracting updater....\n')
                     print('extraction updater....')
                     with ZipFile('updater.zip', 'r') as zipOjk:
                         zipOjk.extractall()
                     updatepath = pathlib.Path().resolve()
                     updater = str(updatepath)
-                    self.update_fbdata('Starting Update....\n')
+                    self.update_fbdata(f'Starting Update....\n')
                     print('starting update....')
                     Popen("%s\\updater\miner-update.exe" % updater)
                     sys.exit()
             else:
-                self.update_fbdata('No Update availible!\n')
+                self.update_fbdata(f'No Update availible!\n')
                 reply = QtWidgets.QMessageBox.question(self, 'Message',
                     "No Update available", QtWidgets.QMessageBox.Ok)
         except Exception as e:     # most generic exception you can catch
             print(str(e))
+
+    def check_update(self):
+        #logf = open("error.log", "w")
+        try:
+            r = requests.get("https://api.github.com/repos/Secarius/Milesight_Miner_Tools/git/trees/main?recursive=1")
+            data = r.json()
+            url = [item['path'] for item in data['tree']]
+            updatepackage = [string for string in url if 'minertools' in string]
+            zippackage = [string for string in updatepackage if '.zip' in string]
+            zippackage = zippackage[0]
+            online_version = zippackage.replace(".zip", "")
+            online_version = online_version.replace("installer/minertools_", "")
+            if (version.parse(version_build) < version.parse(online_version)):
+                self.update_fbdata(f'===================================================\n')
+                self.update_fbdata(f'Version Status:  New Version availible!\n')
+                self.update_fbdata(f'If you want to update, please press "Check Update".\n')
+                self.update_fbdata(f'The update can take some time.\n')
+                self.update_fbdata(f'===================================================\n')
+            else:
+                self.update_fbdata(f'=======================================\n')
+                self.update_fbdata(f'Version Status: Miner Tools up to date!\n')
+                self.update_fbdata(f'=======================================\n')
+        except Exception as e:     # most generic exception you can catch
+            print(str(e))
+
+    def howto(self):
+        self.update_fbdata(f'\n')
+        self.update_fbdata(f'How to use the Miner Tools:\n')
+        self.update_fbdata(f'\n')
+        self.update_fbdata(f'Get started blog post from DCYeahThatsMe: \nhttps://denniscrawford.com/2022/02/milesight-ug65-minertools-guide-multiple-miner-config-by-secarius/\n')
+        self.update_fbdata(f'\n')
+        self.update_fbdata(f'Status:          get short status of miner docker container.\n')
+        self.update_fbdata(f'Info:            get full info of miner docker container\n')
+        self.update_fbdata(f'Sync Status:     see if sync ist active/paused\n')
+        self.update_fbdata(f'Peer Book:       displays peerbook -s informations\n')
+        self.update_fbdata(f'Restart Miner:   reboots the whole miner\n')
+        self.update_fbdata(f'Restart Lora:    restarts the LoRa Packet Forwarder Service\n')
+        self.update_fbdata(f'Console Log:     displays the miner docker console log\n')
+        self.update_fbdata(f'Resume Sync:     tries to resume sync if paused\n')
+        self.update_fbdata(f'Disk Usage:      displays the usage state of the miner disk\n')
+        self.update_fbdata(f'Fast Sync:       triggers miner to fast sync the blockchain via snapshot download\n')
+        self.update_fbdata(f'Quagga Restart:  restarts the Quagga Services\n')
+        self.update_fbdata(f'\n')
+        self.update_fbdata(f'Open in Browser: opens you miner ip in the browser\n')
+        self.update_fbdata(f'Edit Config:     opens config in notepad to be edited\n')
+        self.update_fbdata(f'Reload Config:   reloads config file\n')
+        self.update_fbdata(f'Helium Explorer: opens miner on explorer.helium.com in the browser\n')
+        self.update_fbdata(f'\n')
+        self.update_fbdata(f'Check Update:    runs check for new version of Miner Tools and updates if wanted\n')
+        self.update_fbdata(f'\n')
+        self.update_fbdata(f'\n')
+        self.update_fbdata(f'\n')
+        self.update_fbdata(f'You can run custom commands in the free text field at the bottom, \njust type them and hit "Enter" / "Return" e.g. -> uptime\n')
 
     def updatecombo(self):
         global minerconfig
@@ -414,6 +468,9 @@ class Ui_MainWindow(object):
                 self.combo_select_miner.addItem(minerconfig[0])
             else:
                 self.throw_custom_error(title='Error', message='Config is empty!')
+
+    def open_milesight_func(self):
+        webbrowser.open("https://www.milesight-iot.com/lorawan/hotspot-miner-helium/", new=0, autoraise=True)
 
     def run_open_miner_website(self):
         combopos = self.combo_select_miner.currentIndex()
@@ -458,7 +515,7 @@ class Ui_MainWindow(object):
         qApp.quit()
 
     def run_sync_commands(self):
-        self.update_fbdata('Syncing . . . This might take a minute . . .\n')
+        self.update_fbdata(f'Syncing . . . This might take a minute . . .\n')
         self.log = ''
         f = open(snapconfspath)
         snaplines = f.readlines()
@@ -504,7 +561,7 @@ class Ui_MainWindow(object):
                     do_sync_resume = 'sync active' not in out
                 self.log += f'#{cmd}\n{out}'
                 if stderr != '': self.log += f'STDERR: {stderr}'
-        self.update_fbdata('*** DONE ***\n')
+        self.update_fbdata(f'*** DONE ***\n')
         self.text_console.ensureCursorVisible()
         self.save()
         self.s.disconnect()
@@ -809,7 +866,7 @@ class Ui_MainWindow(object):
         connection = self.s.connect()
         self.clear_fbdata()
         if not self.s.is_alive() or connection == None:
-            self.update_fbdata('Connection Error.\nCheck username and password in options.config in files/ folder.')
+            self.update_fbdata(f'Connection Error.\nCheck username and password in options.config in files/ folder.')
             return None
         return True
 

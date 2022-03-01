@@ -317,7 +317,7 @@
     </property>
     <property name="icon">
      <iconset resource="../assets/images.qrc">
-      <normaloff>:/Logo/milesight.png</normaloff>:/Logo/milesight.png</iconset>
+      <normaloff>:/Logo/milesight-logo.png</normaloff>:/Logo/milesight-logo.png</iconset>
     </property>
     <property name="iconSize">
      <size>
