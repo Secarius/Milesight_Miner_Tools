@@ -41,7 +41,7 @@ import time
 import webbrowser
 import numpy
 
-version_build = "1.2.7"
+version_build = "1.2.8"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -910,7 +910,7 @@ class Ui_MainWindow(object):
         self.s.disconnect()
 
     def run_line_command_cmd(self):
-        cmd = self.line_command.text()
+        cmd = self.button_line_command.text()
         self.update_fbdata(f'${cmd}\n')
         out, stderr = self.s.exec_cmd(cmd=cmd)
         self.update_fbdata(out)
