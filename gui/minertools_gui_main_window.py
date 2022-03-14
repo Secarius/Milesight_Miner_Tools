@@ -40,7 +40,7 @@ import time
 import webbrowser
 import numpy
 
-version_build = "1.3.0"
+version_build = "1.3.1"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -802,6 +802,8 @@ class Ui_MainWindow(object):
 
     #################### commands
     def run_process_logs_cmd(self):
+        if not os.path.exists('processlogs\logs'):
+            os.makedirs('processlogs\logs')
         path = "/mnt/mmcblk0p1/miner_data/log/console.log"
         cmd = "processlogs\php\php.exe processlogs\processlogs.php -p processlogs\logs"
         self.update_fbdata(f'Downloading console.log from miner...\n\n')

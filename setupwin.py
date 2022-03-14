@@ -5,7 +5,7 @@ from cx_Freeze import setup, Executable
 
 #Application information
 name = 'Miner Controler'
-version = '1.3.0'
+version = '1.3.1'
 author = 'Milesight'
 author_email = 'sample@example.xxx'
 url = 'http://example.xxx'
