@@ -20,7 +20,6 @@ import tkinter.font as tkFont
 from PIL import Image, ImageTk
 from zipfile import ZipFile
 import subprocess
-from asyncio import subprocess
 from subprocess import Popen
 from fnmatch import fnmatch
 from pprint import pprint
@@ -41,7 +40,7 @@ import time
 import webbrowser
 import numpy
 
-version_build = "1.2.8"
+version_build = "1.3.0"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -421,11 +420,16 @@ class Ui_MainWindow(object):
         self.button_helium_explorer.clicked.connect(self.open_explorer_func)
         self.logo_milesight.clicked.connect(self.open_milesight_func)
         self.button_restart_docker.clicked.connect(self.restart_docker_func)
-        self.button_process_logs.setEnabled(False)
+        #self.button_process_logs.setEnabled(False)
+        self.button_process_logs.clicked.connect(self.process_logs_func)
 
     def get_url_paths(self):
         #logf = open("error.log", "w")
         try:
+            self.update_fbdata(f'Updating helium-miner-log-analyzer ...\n')
+            urllib.request.urlretrieve("https://raw.githubusercontent.com/inigoflores/helium-miner-log-analyzer/main/processlogs.php","processlogs/processlogs.php")
+            self.update_fbdata(f'Finished\n\n')
+            self.clear_fbdata()
             r = requests.get("https://api.github.com/repos/Secarius/Milesight_Miner_Tools/git/trees/main?recursive=1")
             data = r.json()
             url = [item['path'] for item in data['tree']]
@@ -467,6 +471,10 @@ class Ui_MainWindow(object):
     def check_update(self):
         #logf = open("error.log", "w")
         try:
+            self.update_fbdata(f'Updating helium-miner-log-analyzer ...\n')
+            urllib.request.urlretrieve("https://raw.githubusercontent.com/inigoflores/helium-miner-log-analyzer/main/processlogs.php","processlogs/processlogs.php")
+            self.update_fbdata(f'Finished\n\n')
+            self.clear_fbdata()
             r = requests.get("https://api.github.com/repos/Secarius/Milesight_Miner_Tools/git/trees/main?recursive=1")
             data = r.json()
             url = [item['path'] for item in data['tree']]
@@ -771,7 +779,6 @@ class Ui_MainWindow(object):
             self.tmpthread.start()
         else:
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
-    #*************************** BUTTON FUNCTIONS ***************************
 
     def open_explorer_func(self):
         if not self.s.is_alive():
@@ -782,6 +789,32 @@ class Ui_MainWindow(object):
             self.tmpthread.start()
         else:
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
+    def process_logs_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_process_logs_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+
+    #################### commands
+    def run_process_logs_cmd(self):
+        path = "/mnt/mmcblk0p1/miner_data/log/console.log"
+        cmd = "processlogs\php\php.exe processlogs\processlogs.php -p processlogs\logs"
+        self.update_fbdata(f'Downloading console.log from miner...\n\n')
+        self.s.scp_file(path=path)
+        self.update_fbdata(f'Processing logs ...\n')
+        self.s.disconnect()
+        try:
+            cmdCommand = "processlogs\php\php.exe processlogs\processlogs.php -p processlogs\logs"   #specify your cmd command
+            process = subprocess.Popen(cmdCommand.split(), stdout=subprocess.PIPE)
+            out, error = process.communicate()
+            self.update_fbdata(out.decode("utf-8"))
+        except Exception as e:
+            print(f'e : {e}')
 
     def run_quagga_cmd(self):
         cmd = '/etc/init.d/quagga restart'
@@ -1001,7 +1034,7 @@ class Ui_MainWindow(object):
 ##################################################################
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Miner Tools"))
         self.label_version.setText(_translate("MainWindow", "Version:"))
         self.button_check_update.setText(_translate("MainWindow", "Check Update"))
         self.button_reload_config.setText(_translate("MainWindow", "Reload Config"))

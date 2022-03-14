@@ -40,6 +40,14 @@ class ssh_comms():
         else:
             print('provide cmd to execute')
 
+    def scp_file(self, path=None):
+        if path is not None:
+            sftp = self.ssh.open_sftp()
+            sftp.get(path, "processlogs/logs/console.log")
+            sftp.close()
+        else:
+            print('provide path to get')
+
     def is_alive(self):
         if self.ssh.get_transport() is not None:
             return self.ssh.get_transport().is_active()
