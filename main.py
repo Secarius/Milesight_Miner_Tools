@@ -1,19 +1,15 @@
 import sys
 import os
-from tkinter import messagebox
-from zipfile import ZipFile
-import subprocess
-import time
-import psutil
-from PyQt5.uic import loadUi
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QDialog, QMessageBox
-from numpy import genfromtxt, loadtxt
+from PyQt5.QtWidgets import QMainWindow, QApplication
 from gui.minertools_gui_main_window import Ui_MainWindow
-import src.ssh_comms
 #*************************** BUTTON FUNCTIONS ***************************
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
+os.environ["QT_SCALE_FACTOR"] = "0"
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "0"
 
 class Window(QMainWindow, Ui_MainWindow):
     """A dummy docstring."""

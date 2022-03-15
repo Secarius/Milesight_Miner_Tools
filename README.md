@@ -18,5 +18,9 @@ pyinstaller --name="MinerToolsMac" --windowed --icon assets/helium.ico --onefile
 ```bash
 pyrcc5 -o images_rc.py images.qrc
 
-pyuic5 xyz.ui > xyz.py 
+pyuic5 minertools_gui_main_window.ui > newgui.py 
 ```
+
+## Font Changes
+
+setPixelSize
