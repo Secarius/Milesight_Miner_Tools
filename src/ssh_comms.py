@@ -18,13 +18,14 @@ class ssh_comms():
             print('One / Multiple options not set on options file.')
 
     def connect(self):
-        print(f'** Connecting to {self.addr} on port {self.port}**')
+        print(f'** Connecting to {self.addr} on port {self.port} **')
         try:
-            self.ssh.connect(self.addr, username=self.user, password=self.password)
+            self.ssh.connect(self.addr,port=self.port, username=self.user, password=self.password)
             return 'Connected'
-        except:
-            self.disconnect()
-            return None
+        except Exception as connecter:
+            print('Connection Error: \n')
+            print(connecter)
+            return connecter
 
     def disconnect(self):
         print(f'** Disconnecting from {self.addr} **')

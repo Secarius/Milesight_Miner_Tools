@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1136</width>
-    <height>742</height>
+    <height>717</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -51,13 +51,13 @@
        <widget class="QLabel" name="label_select_miner">
         <property name="minimumSize">
          <size>
-          <width>110</width>
+          <width>100</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>110</width>
+          <width>100</width>
           <height>16777215</height>
          </size>
         </property>
@@ -80,7 +80,7 @@
        <widget class="QComboBox" name="combo_select_miner">
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>190</width>
           <height>0</height>
          </size>
         </property>
@@ -100,13 +100,13 @@
        <widget class="QPushButton" name="button_open_in_browser">
         <property name="minimumSize">
          <size>
-          <width>0</width>
+          <width>115</width>
           <height>26</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>115</width>
           <height>26</height>
          </size>
         </property>
@@ -130,13 +130,13 @@
        <widget class="QPushButton" name="button_edit_config">
         <property name="minimumSize">
          <size>
-          <width>0</width>
+          <width>90</width>
           <height>26</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>90</width>
           <height>26</height>
          </size>
         </property>
@@ -160,13 +160,13 @@
        <widget class="QPushButton" name="button_reload_config">
         <property name="minimumSize">
          <size>
-          <width>0</width>
+          <width>110</width>
           <height>26</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>110</width>
           <height>26</height>
          </size>
         </property>
@@ -190,13 +190,13 @@
        <widget class="QPushButton" name="button_helium_explorer">
         <property name="minimumSize">
          <size>
-          <width>0</width>
+          <width>117</width>
           <height>26</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>117</width>
           <height>26</height>
          </size>
         </property>
@@ -217,20 +217,17 @@
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="top_menu_spacer" native="true">
-        <property name="minimumSize">
+       <spacer name="spacer_top_menu">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
          <size>
-          <width>0</width>
-          <height>26</height>
+          <width>40</width>
+          <height>20</height>
          </size>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>26</height>
-         </size>
-        </property>
-       </widget>
+       </spacer>
       </item>
       <item>
        <widget class="QPushButton" name="button_check_update">
@@ -320,19 +317,51 @@
         <property name="text">
          <string>1.0.0</string>
         </property>
+        <property name="textFormat">
+         <enum>Qt::PlainText</enum>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::NoTextInteraction</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_donate">
+        <property name="minimumSize">
+         <size>
+          <width>56</width>
+          <height>26</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>56</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Donate</string>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="logo_milesight">
         <property name="minimumSize">
          <size>
-          <width>112</width>
+          <width>100</width>
           <height>26</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>112</width>
+          <width>100</width>
           <height>26</height>
          </size>
         </property>
@@ -414,7 +443,7 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="bottom_functions_layout">
       <property name="spacing">
        <number>1</number>
       </property>
@@ -817,12 +846,12 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="bottom_functions_layout">
+     <layout class="QHBoxLayout" name="bottom_send_command_layout">
       <property name="spacing">
        <number>5</number>
       </property>
       <item>
-       <widget class="QLineEdit" name="button_line_command">
+       <widget class="QLineEdit" name="lineedit_line_command">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -838,7 +867,7 @@
         <property name="font">
          <font>
           <family>MS Shell Dlg 2</family>
-          <pointsize>11</pointsize>
+          <pointsize>10</pointsize>
          </font>
         </property>
         <property name="whatsThis">
@@ -865,7 +894,7 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>9</pointsize>
+          <pointsize>10</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>

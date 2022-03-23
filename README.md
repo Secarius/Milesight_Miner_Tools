@@ -23,4 +23,13 @@ pyuic5 minertools_gui_main_window.ui > newgui.py
 
 ## Font Changes
 
+version_build
+
+setPointSize
 setPixelSize
+
+10 -> 13
+
+TextConsole add: font.setPixelSize(15)
+LabeMiner: setPixelSize(15)
+Rest: font.setPixelSize(13)
