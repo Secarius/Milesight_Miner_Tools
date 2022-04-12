@@ -27,8 +27,10 @@ import pathlib
 from assets import images_rc
 from src import ssh_comms
 import webbrowser
+import time
+import shutil
 
-version_build = "1.3.4"
+version_build = "1.3.5"
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
@@ -479,10 +481,10 @@ class Ui_MainWindow(object):
     def get_url_paths(self):
         #logf = open("error.log", "w")
         try:
+            self.clear_fbdata()
             self.update_fbdata(f'Updating helium-miner-log-analyzer ...\n')
             urllib.request.urlretrieve("https://raw.githubusercontent.com/inigoflores/helium-miner-log-analyzer/main/processlogs.php","processlogs/processlogs.php")
             self.update_fbdata(f'Finished\n\n')
-            self.clear_fbdata()
             r = requests.get("https://api.github.com/repos/Secarius/Milesight_Miner_Tools/git/trees/main?recursive=1")
             data = r.json()
             url = [item['path'] for item in data['tree']]
@@ -817,10 +819,25 @@ class Ui_MainWindow(object):
     def run_peer_book_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
-                return
-            self.tmpthread = threading.Thread(target=self.run_peer_book_cmd)
-            self.tmpthread.daemon = True
-            self.tmpthread.start()
+                    return
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowTitle("Peerbook Mode Selection")
+            messageBox.setText("Please select Peerbook Mode:")
+            
+            buttonoptionA = messageBox.addButton("peerbook -s", QtWidgets.QMessageBox.YesRole)    
+            buttonoptionB = messageBox.addButton("peerbook -c", QtWidgets.QMessageBox.AcceptRole)  
+            messageBox.setDefaultButton(buttonoptionA)
+            
+            messageBox.exec_()
+
+            if messageBox.clickedButton() == buttonoptionA:
+                self.tmpthread = threading.Thread(target=self.run_peer_book_s_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+            elif messageBox.clickedButton() == buttonoptionB:
+                self.tmpthread = threading.Thread(target=self.run_peer_book_c_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
         else:
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
 
@@ -857,25 +874,75 @@ class Ui_MainWindow(object):
     def process_logs_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
-                return
-            self.tmpthread = threading.Thread(target=self.run_process_logs_cmd)
-            self.tmpthread.daemon = True
-            self.tmpthread.start()
+                    return
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowTitle("Processlogs Mode Selection")
+            messageBox.setText("Please select Processlogs Mode:")
+            
+            buttonoptionA = messageBox.addButton("Statistics", QtWidgets.QMessageBox.YesRole)    
+            buttonoptionB = messageBox.addButton("Witness list", QtWidgets.QMessageBox.AcceptRole)  
+            messageBox.setDefaultButton(buttonoptionA)
+            
+            messageBox.exec_()
+
+            if messageBox.clickedButton() == buttonoptionA:
+                self.tmpthread = threading.Thread(target=self.run_process_logs_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+            elif messageBox.clickedButton() == buttonoptionB:
+                self.tmpthread = threading.Thread(target=self.run_process_logs_l_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
         else:
             self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
 
     #################### commands
     def run_process_logs_cmd(self):
-        if not os.path.exists('processlogs\logs'):
-            os.makedirs('processlogs\logs')
+        combopos = self.combo_select_miner.currentIndex()
+        if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
+            mname = minerconfig[0]
+        else:
+            mname = minerconfig[combopos][0]
+        timestr = time.strftime("%Y%m%d")
+        filename = "processlogs/logs/archive/" + mname + "-console-" + timestr + ".log"
+        if not os.path.exists('processlogs/logs'):
+            os.makedirs('processlogs/logs')
+        if not os.path.exists('processlogs/logs/archive'):
+            os.makedirs('processlogs/logs/archive')
         path = "/mnt/mmcblk0p1/miner_data/log/console.log"
-        cmd = "processlogs\php\php.exe processlogs\processlogs.php -p processlogs\logs"
         self.update_fbdata(f'Downloading console.log from miner...\n\n')
         self.s.scp_file(path=path)
+        shutil.copyfile('processlogs\logs\console.log', filename)
         self.update_fbdata(f'Processing logs ...\n')
         self.s.disconnect()
         try:
             cmdCommand = "processlogs\php\php.exe processlogs\processlogs.php -p processlogs\logs"   #specify your cmd command
+            process = subprocess.Popen(cmdCommand.split(), stdout=subprocess.PIPE)
+            out, error = process.communicate()
+            self.update_fbdata(out.decode("utf-8"))
+        except Exception as e:
+            print(f'e : {e}')
+
+    def run_process_logs_l_cmd(self):
+        combopos = self.combo_select_miner.currentIndex()
+        if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
+            mname = minerconfig[0]
+        else:
+            mname = minerconfig[combopos][0]
+        timestr = time.strftime("%Y%m%d")
+        filename = "processlogs/logs/archive/" + mname + "-console-" + timestr + ".log"
+        if not os.path.exists('processlogs/logs'):
+            os.makedirs('processlogs/logs')
+        if not os.path.exists('processlogs/logs/archive'):
+            os.makedirs('processlogs/logs/archive')
+        path = "/mnt/mmcblk0p1/miner_data/log/console.log"
+        self.update_fbdata(f'Downloading console.log from miner...\n\n')
+        self.s.scp_file(path=path)
+        shutil.copyfile('processlogs\logs\console.log', filename)
+        self.update_fbdata(f'Processing logs ...\n')
+        self.s.disconnect()
+        try:
+            cmdCommand = "processlogs\php\php.exe processlogs\processlogs.php -p processlogs\logs -l"   #specify your cmd command
             process = subprocess.Popen(cmdCommand.split(), stdout=subprocess.PIPE)
             out, error = process.communicate()
             self.update_fbdata(out.decode("utf-8"))
@@ -904,19 +971,23 @@ class Ui_MainWindow(object):
         self.s.disconnect()
 
     def run_status_cmd(self):
-        cmds = ['docker exec miner miner info p2p_status',
+        cmds = ['docker exec miner miner info name', 
+                'docker exec miner miner info p2p_status',
                 'curl -k --connect-timeout 10 https://api.helium.io/v1/blocks/height',
                 'cat /sys/class/thermal/thermal_zone0/temp']
-        self.update_fbdata(f'${cmds[0]}\n')
+        self.update_fbdata(f'Miner Name: ')
         for idx, cmd in enumerate(cmds):
             out, stderr = self.s.exec_cmd(cmd=cmd)
             if idx == 0:
                 self.update_fbdata(out)
+                self.update_fbdata('\n')
+            if idx == 1:
+                self.update_fbdata(out)
                 if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
                 miner_height = int(out.split('height')[1].split('|')[1].split('|')[0])
-            elif idx == 1:
-                blockchain_height = int(out.split('height":')[1].split('}')[0])
             elif idx == 2:
+                blockchain_height = int(out.split('height":')[1].split('}')[0])
+            elif idx == 3:
                 cpu_temp = int(out)
         temp = cpu_temp / 1000
         self.update_fbdata(f'CPU Temperature: {temp}°C\n\n')
@@ -999,14 +1070,23 @@ class Ui_MainWindow(object):
         self.update_fbdata(f'*** DONE ***\n')
         self.s.disconnect()
 
-    def run_peer_book_cmd(self):
-        cmd = 'docker exec miner miner peer book -s'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+    def run_peer_book_c_cmd(self):
+            cmd = 'docker exec miner miner peer book -c'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+
+    def run_peer_book_s_cmd(self):
+            cmd = 'docker exec miner miner peer book -s'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
 
     def run_line_command_cmd(self):
         cmd = self.lineedit_line_command.text()

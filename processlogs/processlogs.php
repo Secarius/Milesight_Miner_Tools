@@ -17,7 +17,7 @@ $logsFolder = './';
 $logsFolders = [
         'Docker'         => '/var/log/miner/', //Also Controllino
         'Pisces P100'    => '/home/pi/hnt/miner/log/',
-        'Sensecap M1'    => 'in /mnt/data/docker/volumes/xxxxxxx_miner-log/_data/', 
+        'Sensecap M1'    => 'in /mnt/data/docker/volumes/xxxxxxx_miner-log/_data/',
         'Milesight UG65' => '/mnt/mmcblk0p1/miner_data/log/', //adding it for future use,as PHP and opkg are missing (OpenWrt)
         'Panther X2'     => '/opt/panther-x2/miner_data/log/',
         'RHF2S308'       => '/opt/helium/miner_data/log/'
@@ -142,16 +142,18 @@ function generateStats($beacons) {
 
         // Failure Reasons
         if ($beacon['status']=='failed max retry') {
-            if ($beacon['reasonShort']=='not found') {
-                $failedNotFound++;
-            } else if ($beacon['reasonShort']=='timeout') {
-                $failedTimeout++;
-            } else if ($beacon['reasonShort']=='no listen address') {
-                $failedNoListenAddress++;
-            } else if ($beacon['reasonShort']=='connection refused') {
-                $failedConRefused++;
-            } else if ($beacon['reasonShort']=='host unreachable') {
-                $failedHostUnreach++;
+            if (!empty($beacon['reasonShort'])) {
+                if ($beacon['reasonShort']=='not found') {
+                    $failedNotFound++;
+                } else if ($beacon['reasonShort']=='timeout') {
+                    $failedTimeout++;
+                } else if ($beacon['reasonShort']=='no listen address') {
+                    $failedNoListenAddress++;
+                } else if ($beacon['reasonShort']=='connection refused') {
+                    $failedConRefused++;
+                } else if ($beacon['reasonShort']=='host unreachable') {
+                    $failedHostUnreach++;
+                }
             }
         }
 
@@ -224,7 +226,7 @@ function generateStats($beacons) {
  * @return string
  */
 function generateList($beacons) {
-    $output = "Date                    | Session    | RSSI | Freq  | SNR   | Noise  | Challenger                                           | Relay | Status            | Fails | Reason \n";
+    $output = "Date                    | Session     | RSSI | Freq  | SNR   | Noise  | Challenger                                           | Relay | Status            | Fails | Reason \n";
     $output.= "------------------------------------------------------------------------------------------------------------------------------------------------------------------------ \n";
 
     foreach ($beacons as $beacon){
@@ -253,7 +255,7 @@ function generateList($beacons) {
 function extractData($logsFolder, $startDate, $endDate){
 
     $beacons = [];
-    $filenames = glob("{$logsFolder}console.log*");
+    $filenames = glob("{$logsFolder}console*.log*");
 
     if (empty($filenames)){
         exit ("No logs found. Please chdir to the Helium miner logs folder or specify a path.\n");
@@ -263,7 +265,13 @@ function extractData($logsFolder, $startDate, $endDate){
 
     foreach ($filenames as $filename) {
 
-        $lines = file( $filename, FILE_IGNORE_NEW_LINES);
+        $buf = file_get_contents($filename,);
+        if(substr($filename, -3) == '.gz') {
+            $buf = gzdecode($buf);
+        }
+
+        $lines = explode("\n", $buf);
+        unset($buf);
 
         foreach ($lines as $line) {
 
