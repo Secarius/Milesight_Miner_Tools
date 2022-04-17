@@ -1,15 +1,14 @@
 import distutils
 import sys
-import os
 from cx_Freeze import setup, Executable
 
 #Application information
 name = 'Miner Controler'
-version = '1.3.5'
-author = 'Milesight'
+version = '2.0.1'
+author = 'Secarius'
 author_email = 'sample@example.xxx'
 url = 'http://example.xxx'
-description = 'Milesight Tool Collection'
+description = 'Miner Tool Collection'
 
 #Specify the GUID here (basically it should not be changed)
 upgrade_code = '{06637B9A-C07C-37DA-B531-782F798FE871}'

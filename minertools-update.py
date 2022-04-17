@@ -36,37 +36,27 @@ class App(QWidget):
         update_start()
 
 def update_start():
-    print("Update Started")
     updatepath = pathlib.Path().resolve()
-    print(updatepath)
     wait_until()
-    print("unzipping .......................")
     with ZipFile('miner-update.zip', 'r') as zipOjk:
         zipOjk.extractall()
     updater = str(updatepath)
-    print(updater + "\\MinerTools.exe")
     Popen('%s\\MinerTools.exe' % updater)
     myfile="miner-update.zip"
     ## If file exists, delete it ##
     if os.path.isfile(myfile):
         os.remove(myfile)
-    else:    ## Show an error ##
-        print("Error: %s file not found" % myfile)
     myfile="updater.zip"
     ## If file exists, delete it ##
     if os.path.isfile(myfile):
         os.remove(myfile)
-    else:    ## Show an error ##
-        print("Error: %s file not found" % myfile)
     sys.exit()
 
 def wait_until():
     while True:
         if ("MinerTools.exe" in (p.name() for p in psutil.process_iter())): 
             time.sleep(5)
-            print("läuft")
         else:
-            print("läuft nicht")
             return False
 
 if __name__ == '__main__':

@@ -5,7 +5,6 @@ class ssh_comms():
         try:
             self.ssh = SSHClient()
             self.ssh.set_missing_host_key_policy(AutoAddPolicy())
-            print('Successful Initialization')
         except:
             return None
 
@@ -13,41 +12,34 @@ class ssh_comms():
         args = [addr, user, int(port), password]
         if all([arg != None for arg in args]):
             self.addr, self.user, self.port, self.password = args
-            print(f'args : {args}')
-        else:
-            print('One / Multiple options not set on options file.')
 
     def connect(self):
-        print(f'** Connecting to {self.addr} on port {self.port} **')
         try:
             self.ssh.connect(self.addr,port=self.port, username=self.user, password=self.password)
             return 'Connected'
         except Exception as connecter:
-            print('Connection Error: \n')
             print(connecter)
             return connecter
 
     def disconnect(self):
-        print(f'** Disconnecting from {self.addr} **')
         try:
             self.ssh.close()
         except:
             print('Error disconnecting')
 
     def exec_cmd(self, cmd=None):
-        if cmd is not None:
-            stdin, stdout, stderr = self.ssh.exec_command(cmd)
-            return [stdout.read().decode(), stderr.read().decode()]
-        else:
-            print('provide cmd to execute')
+        try:
+            if cmd is not None:
+                stdin, stdout, stderr = self.ssh.exec_command(cmd)
+                return [stdout.read().decode(), stderr.read().decode()]
+        except:
+            print('Error on command')
 
     def scp_file(self, path=None):
         if path is not None:
             sftp = self.ssh.open_sftp()
             sftp.get(path, "processlogs/logs/console.log")
             sftp.close()
-        else:
-            print('provide path to get')
 
     def is_alive(self):
         if self.ssh.get_transport() is not None:

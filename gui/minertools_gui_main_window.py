@@ -11,8 +11,7 @@
 import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import qApp
-from tkinter import messagebox
+from PyQt5.QtWidgets import QMessageBox
 from zipfile import ZipFile
 import subprocess
 from subprocess import Popen
@@ -29,37 +28,87 @@ from src import ssh_comms
 import webbrowser
 import time
 import shutil
+import configparser
+from gui.minertools_gui_settings_popup import Ui_Dialog as Settingsdiag
 
-version_build = "1.3.5"
+version_build = "2.0.1"
+settingsini = configparser.ConfigParser()
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
+settingsspath = '%s\\settings.ini' % dir_path
+snapconfspath = '%s\\snapconf.config' % dir_path
+optionspath = '%s\\options.config' % dir_path
+
+def write_file():
+    settingsini.write(open(settingsspath, 'w'))
+
+# Check if Config directroy exists and create miner config
 if not os.path.exists(dir_path):
     os.makedirs(dir_path)
-optionspath = '%s\\options.config' % dir_path
 try:
     f = open(optionspath)
 except IOError:
-    print("File not accessible")
     f = open(optionspath,"w+")
-    f.write("#MinerName,IP,User,Password,Port")
+    f.write("#MinerName,IP,User,Password,Port\n")
     f.close
 finally:
     f.close()
+if not os.path.exists(settingsspath):
+    settingsini['systemsettings'] = {'highdpi': '1', 'showlogo': '1', 'snapurl': 'http://snapshots-wtf.sensecapmx.cloud/snap-', 'snaplatesturl': 'http://snapshots-wtf.sensecapmx.cloud/latest-snap.json', 'constxtcolor': '#A4E87F', 'consbackcolor': '#212121'}
+    write_file()
+#load settingsini options
+settingsini.read(settingsspath)
+global highdpi
+global snapurl
+global snaplatesturl
+global constxtcolor
+global consbackcolor
+global showlogo
+global logopath
+try:
+    highdpi = settingsini.get('systemsettings', 'highdpi')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'highdpi', '1')
+    highdpi = "1"
+    write_file()
+try:
+    showlogo = settingsini.get('systemsettings', 'showlogo')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'showlogo', '0')
+    write_file()
+try:
+    snapurl = settingsini.get('systemsettings', 'snapurl')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'snapurl', 'http://snapshots-wtf.sensecapmx.cloud/snap-')
+    write_file()
+try:
+    snaplatesturl = settingsini.get('systemsettings', 'snaplatesturl')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'snaplatesturl', 'http://snapshots-wtf.sensecapmx.cloud/latest-snap.json')
+    write_file()
+try:
+    constxtcolor = settingsini.get('systemsettings', 'constxtcolor')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'constxtcolor', '#A4E87F')
+    write_file()
+try:
+    consbackcolor = settingsini.get('systemsettings', 'consbackcolor')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'consbackcolor', '#212121')
+    write_file()
+if showlogo == "1":
+    logopath = "background-image:url(:/Logo/logo.png);"
+else:
+    logopath = ""
+#load miner config
 try:
     minerconfig = genfromtxt(optionspath, skip_header=1, delimiter=",", dtype='unicode', loose=True, invalid_raise=False,comments=None,deletechars='')
 except IOError:
-    print('Config Error')
-finally:
-    print('done')
-snapconfspath = '%s\\snapconf.config' % dir_path
-try:
-    f = open(snapconfspath)
-except IOError:
-    print("File not accessible")
-    f = open(snapconfspath,"w+")
-    f.write("http://snapshots-wtf.sensecapmx.cloud/latest-snap.json\nhttp://snapshots-wtf.sensecapmx.cloud/snap-")
-    f.close
-finally:
-    f.close()
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setText("Cloud not load miners config!")
+    msg.setWindowTitle("Error")
+    msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+    msg.exec_()
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -109,30 +158,6 @@ class Ui_MainWindow(object):
         self.button_open_in_browser.setWhatsThis("")
         self.button_open_in_browser.setObjectName("button_open_in_browser")
         self.top_menu_layout.addWidget(self.button_open_in_browser)
-        self.button_edit_config = QtWidgets.QPushButton(self.centralwidget)
-        self.button_edit_config.setMinimumSize(QtCore.QSize(90, 26))
-        self.button_edit_config.setMaximumSize(QtCore.QSize(90, 26))
-        font = QtGui.QFont()
-        font.setPixelSize(13)
-        font.setBold(True)
-        font.setWeight(75)
-        font.setKerning(True)
-        self.button_edit_config.setFont(font)
-        self.button_edit_config.setWhatsThis("")
-        self.button_edit_config.setObjectName("button_edit_config")
-        self.top_menu_layout.addWidget(self.button_edit_config)
-        self.button_reload_config = QtWidgets.QPushButton(self.centralwidget)
-        self.button_reload_config.setMinimumSize(QtCore.QSize(110, 26))
-        self.button_reload_config.setMaximumSize(QtCore.QSize(110, 26))
-        font = QtGui.QFont()
-        font.setPixelSize(13)
-        font.setBold(True)
-        font.setWeight(75)
-        font.setKerning(True)
-        self.button_reload_config.setFont(font)
-        self.button_reload_config.setWhatsThis("")
-        self.button_reload_config.setObjectName("button_reload_config")
-        self.top_menu_layout.addWidget(self.button_reload_config)
         self.button_helium_explorer = QtWidgets.QPushButton(self.centralwidget)
         self.button_helium_explorer.setMinimumSize(QtCore.QSize(117, 26))
         self.button_helium_explorer.setMaximumSize(QtCore.QSize(117, 26))
@@ -145,6 +170,18 @@ class Ui_MainWindow(object):
         self.button_helium_explorer.setWhatsThis("")
         self.button_helium_explorer.setObjectName("button_helium_explorer")
         self.top_menu_layout.addWidget(self.button_helium_explorer)
+        self.button_settings = QtWidgets.QPushButton(self.centralwidget)
+        self.button_settings.setMinimumSize(QtCore.QSize(110, 26))
+        self.button_settings.setMaximumSize(QtCore.QSize(110, 26))
+        font = QtGui.QFont()
+        font.setPixelSize(13)
+        font.setBold(True)
+        font.setWeight(75)
+        font.setKerning(True)
+        self.button_settings.setFont(font)
+        self.button_settings.setWhatsThis("")
+        self.button_settings.setObjectName("button_settings")
+        self.top_menu_layout.addWidget(self.button_settings)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.top_menu_layout.addItem(spacerItem)
         self.button_check_update = QtWidgets.QPushButton(self.centralwidget)
@@ -209,6 +246,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.top_menu_layout)
         self.text_console = QtWidgets.QPlainTextEdit(self.centralwidget)
         self.text_console.setEnabled(True)
+        
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -222,7 +260,7 @@ class Ui_MainWindow(object):
         font.setFamily("Courier New")
         self.text_console.setFont(font)
         self.text_console.setWhatsThis("")
-        self.text_console.setStyleSheet("background-color:#212121;color:#A4E87F;background-image:url(:/Logo/logo.png);background-repeat:no-repeat;background-position:center right;")
+        self.text_console.setStyleSheet("background-color:%s;color:%s;%sbackground-repeat:no-repeat;background-position:center right;" % (consbackcolor,constxtcolor,logopath))
         self.text_console.setPlaceholderText("")
         self.text_console.setObjectName("text_console")
         self.verticalLayout.addWidget(self.text_console)
@@ -246,18 +284,18 @@ class Ui_MainWindow(object):
         self.button_status.setWhatsThis("")
         self.button_status.setObjectName("button_status")
         self.bottom_functions_layout.addWidget(self.button_status)
-        self.button_info = QtWidgets.QPushButton(self.centralwidget)
-        self.button_info.setMinimumSize(QtCore.QSize(40, 30))
-        self.button_info.setMaximumSize(QtCore.QSize(16777215, 30))
+        self.button_ping = QtWidgets.QPushButton(self.centralwidget)
+        self.button_ping.setMinimumSize(QtCore.QSize(40, 30))
+        self.button_ping.setMaximumSize(QtCore.QSize(16777215, 30))
         font = QtGui.QFont()
         font.setPixelSize(13)
         font.setBold(True)
         font.setWeight(75)
         font.setKerning(True)
-        self.button_info.setFont(font)
-        self.button_info.setWhatsThis("")
-        self.button_info.setObjectName("button_info")
-        self.bottom_functions_layout.addWidget(self.button_info)
+        self.button_ping.setFont(font)
+        self.button_ping.setWhatsThis("")
+        self.button_ping.setObjectName("button_ping")
+        self.bottom_functions_layout.addWidget(self.button_ping)
         self.button_sync_status = QtWidgets.QPushButton(self.centralwidget)
         self.button_sync_status.setMinimumSize(QtCore.QSize(87, 30))
         self.button_sync_status.setMaximumSize(QtCore.QSize(16777215, 30))
@@ -432,12 +470,9 @@ class Ui_MainWindow(object):
         self.action_import_config.setObjectName("action_import_config")
         self.action_export_config = QtWidgets.QAction(MainWindow)
         self.action_export_config.setObjectName("action_export_config")
-        self.action_edit_snap_url = QtWidgets.QAction(MainWindow)
-        self.action_edit_snap_url.setObjectName("action_edit_snap_url")
         self.menuFile.addAction(self.action_edit_config)
         self.menuFile.addAction(self.action_import_config)
         self.menuFile.addAction(self.action_export_config)
-        self.menuFile.addAction(self.action_edit_snap_url)
         self.menuFile.addAction(self.action_exit)
         self.menubar.addAction(self.menuFile.menuAction())
 
@@ -449,17 +484,15 @@ class Ui_MainWindow(object):
         self.action_export_config.triggered.connect(self.export_config)
         self.action_import_config.triggered.connect(self.import_config)
         self.action_exit.triggered.connect(self.exit_window)
-        self.action_edit_snap_url.triggered.connect(self.edit_snapshot)
 
         self.savepath = 'log.txt'
         self.s = ssh_comms.ssh_comms()
 
-        self.button_reload_config.clicked.connect(self.updatecombo)
-        self.button_edit_config.clicked.connect(self.edit_config)
+        self.button_settings.clicked.connect(self.open_settings)
 
         self.button_send_command.clicked.connect(self.run_command_func)
         self.button_status.clicked.connect(self.status_but_func)
-        self.button_info.clicked.connect(self.miner_info_func)
+        self.button_ping.clicked.connect(self.miner_ping_func)
         self.button_peer_book.clicked.connect(self.run_peer_book_func)
         self.button_resume_sync.clicked.connect(self.sync_resume_func)
         self.button_sync_status.clicked.connect(self.sync_status_func)
@@ -477,9 +510,75 @@ class Ui_MainWindow(object):
         self.button_restart_docker.clicked.connect(self.restart_docker_func)
         self.button_process_logs.clicked.connect(self.process_logs_func)
         self.button_donate.clicked.connect(self.donate_text_func)
+    
+    def readconfig(self):
+        settingsini.read(settingsspath)
+        global highdpi
+        global snapurl
+        global snaplatesturl
+        global constxtcolor
+        global consbackcolor
+        global showlogo
+        global logopath
+        try:
+            highdpi = settingsini.get('systemsettings', 'highdpi')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'highdpi', '1')
+            highdpi = "1"
+            write_file()
+        try:
+            showlogo = settingsini.get('systemsettings', 'showlogo')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'showlogo', '1')
+            write_file()
+        try:
+            snapurl = settingsini.get('systemsettings', 'snapurl')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'snapurl', 'http://snapshots-wtf.sensecapmx.cloud/snap-')
+            write_file()
+        try:
+            snaplatesturl = settingsini.get('systemsettings', 'snaplatesturl')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'snaplatesturl', 'http://snapshots-wtf.sensecapmx.cloud/latest-snap.json')
+            write_file()
+        try:
+            constxtcolor = settingsini.get('systemsettings', 'constxtcolor')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'constxtcolor', '#A4E87F')
+            write_file()
+        try:
+            consbackcolor = settingsini.get('systemsettings', 'consbackcolor')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'consbackcolor', '#212121')
+            write_file()
+        if showlogo == "1":
+            logopath = "background-image:url(:/Logo/logo.png);"
+        else:
+            logopath = ""
+        self.text_console.setStyleSheet("background-color:%s;color:%s;%sbackground-repeat:no-repeat;background-position:center right" % (consbackcolor,constxtcolor,logopath))
+
+    def open_settings(self):
+        try:
+            dialogset = QtWidgets.QDialog()
+            dialogset.ui = Settingsdiag()
+            dialogset.ui.setupUi(dialogset)
+            dialogset.setWindowFlags(QtCore.Qt.WindowType.CustomizeWindowHint)
+            dialogset.setWindowFlags(dialogset.windowFlags() & ~QtCore.Qt.WindowType.WindowMinimizeButtonHint & QtCore.Qt.WindowType.WindowCloseButtonHint)
+            dialogset.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            dialogset.exec_()
+            dialogset.show()
+            self.readconfig()
+            self.updatecombo()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
 
     def get_url_paths(self):
-        #logf = open("error.log", "w")
         try:
             self.clear_fbdata()
             self.update_fbdata(f'Updating helium-miner-log-analyzer ...\n')
@@ -501,19 +600,15 @@ class Ui_MainWindow(object):
                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
                     self.update_fbdata(f'Downloading new Version....\n')
-                    print('Downloading new Version')
                     urllib.request.urlretrieve(updateurl,"miner-update.zip")
                     self.update_fbdata(f'Downloading updater....\n')
-                    print('Downloading updater')
                     urllib.request.urlretrieve("https://github.com/Secarius/Milesight_Miner_Tools/raw/main/installer/updater.zip","updater.zip")
                     self.update_fbdata(f'Extracting updater....\n')
-                    print('extraction updater....')
                     with ZipFile('updater.zip', 'r') as zipOjk:
                         zipOjk.extractall()
                     updatepath = pathlib.Path().resolve()
                     updater = str(updatepath)
                     self.update_fbdata(f'Starting Update....\n')
-                    print('starting update....')
                     Popen("%s\\updater\miner-update.exe" % updater)
                     sys.exit()
             else:
@@ -521,10 +616,14 @@ class Ui_MainWindow(object):
                 reply = QtWidgets.QMessageBox.question(self, 'Message',
                     "No Update available", QtWidgets.QMessageBox.Ok)
         except Exception as e:     # most generic exception you can catch
-            print(str(e))
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def check_update(self):
-        #logf = open("error.log", "w")
         try:
             self.update_fbdata(f'Updating helium-miner-log-analyzer ...\n')
             urllib.request.urlretrieve("https://raw.githubusercontent.com/inigoflores/helium-miner-log-analyzer/main/processlogs.php","processlogs/processlogs.php")
@@ -549,94 +648,148 @@ class Ui_MainWindow(object):
                 self.update_fbdata(f'Version Status: Miner Tools up to date!\n')
                 self.update_fbdata(f'=======================================\n')
         except Exception as e:     # most generic exception you can catch
-            print(str(e))
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def donate_text_func(self):
-        self.clear_fbdata()
-        self.update_fbdata(f'\n')
-        self.update_fbdata(f'Hi,\n')
-        self.update_fbdata(f'if you like what i am doing and you think my work with Miner Tools is worth it, \n')
-        self.update_fbdata(f'feel free to leave me some HNT for my work :)\n')
-        self.update_fbdata(f'\n')
-        self.update_fbdata(f'My HNT Wallet Address:\n')
-        self.update_fbdata(f'13nB5a9ZtNySJSDbzBY5uaWxToqX8Zb8V4SqDwGGBJLXYQvrSEj\n')
-        self.update_fbdata(f'\n\n')
-        self.update_fbdata(f'If you want to leave a feedback, feel free to join the Miner Tools Discord Thread on Milesight Discord: \n\n')
-        self.update_fbdata(f'https://discord.com/channels/920883777138458755/939230368115093556')
+        try:
+            self.clear_fbdata()
+            self.update_fbdata(f'\n')
+            self.update_fbdata(f'Hi,\n')
+            self.update_fbdata(f'if you like what i am doing and you think my work with Miner Tools is worth it, \n')
+            self.update_fbdata(f'feel free to leave me some HNT for my work :)\n')
+            self.update_fbdata(f'\n')
+            self.update_fbdata(f'My HNT Wallet Address:\n')
+            self.update_fbdata(f'13nB5a9ZtNySJSDbzBY5uaWxToqX8Zb8V4SqDwGGBJLXYQvrSEj\n')
+            self.update_fbdata(f'\n\n')
+            self.update_fbdata(f'If you want to leave a feedback, feel free to join the Miner Tools Discord Thread on Milesight Discord: \n')
+            self.update_fbdata(f'https://discord.com/channels/920883777138458755/939230368115093556')
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def howto(self):
-        self.update_fbdata(f'\n')
-        self.update_fbdata(f'How to use the Miner Tools:\n')
-        self.update_fbdata(f'\n')
-        self.update_fbdata(f'Get started blog post from DCYeahThatsMe: \nhttps://denniscrawford.com/2022/02/milesight-ug65-minertools-guide-multiple-miner-config-by-secarius/\n')
-        self.update_fbdata(f'\n')
-        self.update_fbdata(f'Status:          get short status of miner docker container.\n')
-        self.update_fbdata(f'Info:            get full info of miner docker container\n')
-        self.update_fbdata(f'Sync Status:     see if sync ist active/paused\n')
-        self.update_fbdata(f'Peer Book:       displays peerbook -s informations\n')
-        self.update_fbdata(f'Restart Miner:   reboots the whole miner\n')
-        self.update_fbdata(f'Restart Lora:    restarts the LoRa Packet Forwarder Service\n')
-        self.update_fbdata(f'Console Log:     displays the miner docker console log\n')
-        self.update_fbdata(f'Resume Sync:     tries to resume sync if paused\n')
-        self.update_fbdata(f'Disk Usage:      displays the usage state of the miner disk\n')
-        self.update_fbdata(f'Fast Sync:       triggers miner to fast sync the blockchain via snapshot download\n')
-        self.update_fbdata(f'Quagga Restart:  restarts the Quagga Services\n')
-        self.update_fbdata(f'\n')
-        self.update_fbdata(f'Open in Browser: opens you miner ip in the browser\n')
-        self.update_fbdata(f'Edit Config:     opens config in notepad to be edited\n')
-        self.update_fbdata(f'Reload Config:   reloads config file\n')
-        self.update_fbdata(f'Helium Explorer: opens miner on explorer.helium.com in the browser\n')
-        self.update_fbdata(f'\n')
-        self.update_fbdata(f'Check Update:    runs check for new version of Miner Tools and updates if wanted\n')
-        self.update_fbdata(f'\n')
-        self.update_fbdata(f'You can run custom commands in the free text field at the bottom, \njust type them and hit "Enter" / "Return" e.g. -> uptime\n')
+        try:
+            self.update_fbdata(f'\n')
+            self.update_fbdata(f'How to use the Miner Tools:\n')
+            self.update_fbdata(f'\n')
+            self.update_fbdata(f'Get started blog post from DCYeahThatsMe:')
+            self.update_fbdata(f'https://minertools.doit.net')
+            self.update_fbdata(f'\n\n')
+            self.update_fbdata(f'Status:          get short status of miner docker container.\n')
+            self.update_fbdata(f'PING:            starts a ping test form inside the miner to google.com\n')
+            self.update_fbdata(f'Sync Status:     see if sync ist active/paused\n')
+            self.update_fbdata(f'Peer Book:       displays peerbook informations\n')
+            self.update_fbdata(f'Console Log:     displays the miner docker console log\n')
+            self.update_fbdata(f'Process Logs:    displaying the console.log readable\n')
+            self.update_fbdata(f'Disk Usage:      displays the usage state of the miner disk\n')
+            self.update_fbdata(f'Fast Sync:       triggers miner to fast sync the blockchain via snapshot download\n')
+            self.update_fbdata(f'Restart Lora:    restarts the LoRa Packet Forwarder Service\n')
+            self.update_fbdata(f'Resume Sync:     tries to resume sync if paused\n')
+            self.update_fbdata(f'Restart Docker:  reboots the miner docker\n')
+            self.update_fbdata(f'Quagga Restart:  restarts the Quagga Services\n')
+            self.update_fbdata(f'Restart Miner:   reboots the whole miner\n')
+            self.update_fbdata(f'\n')
+            self.update_fbdata(f'Open in Browser: opens you miner ip in the browser\n')
+            self.update_fbdata(f'Helium Explorer: opens miner on explorer.helium.com in the browser\n')
+            self.update_fbdata(f'Settings:        Open Settings Menu\n')
+            self.update_fbdata(f'\n')
+            self.update_fbdata(f'Check Update:    runs check for new version of Miner Tools and updates if wanted, also get the latest processlogs.php\n')
+            self.update_fbdata(f'\n')
+            self.update_fbdata(f'You can run custom commands in the free text field at the bottom, \njust type them and hit "Enter" / "Return" e.g. -> uptime\n')
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def updatecombo(self):
-        print("Update Config ....")
-        global minerconfig
         try:
-            f = open(optionspath)
-        except IOError:
-            print("File not accessible")
-            f = open(optionspath,"w+")
-            f.write("#MinerName,IP,User,Password,Port")
-            f.close
-        finally:
-            f.close()
-        try:
-            minerconfig = genfromtxt(optionspath, skip_header=1, delimiter=",", dtype='unicode', loose=True, invalid_raise=False,comments=None,deletechars='')
-        except IOError:
-                reply = QtWidgets.QMessageBox.question(self, 'Message',
-                "There is error with the configfile\nIts located in: %appdata%\MinerTools", QtWidgets.QMessageBox.Ok)
-        self.combo_select_miner.clear()
-        if len(minerconfig.shape) > 1:
-            for x in range(len(minerconfig)):
-                self.combo_select_miner.addItem(minerconfig[x][0])
-        else:
-            if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
-                self.combo_select_miner.addItem(minerconfig[0])
+            global minerconfig
+            try:
+                f = open(optionspath)
+            except IOError:
+                f = open(optionspath,"w+")
+                f.write("#MinerName,IP,User,Password,Port\n")
+                f.close
+            finally:
+                f.close()
+            try:
+                minerconfig = genfromtxt(optionspath, skip_header=1, delimiter=",", dtype='unicode', loose=True, invalid_raise=False,comments=None,deletechars='')
+            except IOError:
+                    reply = QtWidgets.QMessageBox.question(self, 'Message',
+                    "There is error with the configfile\nIts located in: %appdata%\MinerTools", QtWidgets.QMessageBox.Ok)
+            self.combo_select_miner.clear()
+            if len(minerconfig.shape) > 1:
+                for x in range(len(minerconfig)):
+                    self.combo_select_miner.addItem(minerconfig[x][0])
             else:
-                self.throw_custom_error(title='Error', message='Config is empty!')
+                if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
+                    self.combo_select_miner.addItem(minerconfig[0])
+                else:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setText("Config is empty!")
+                    msg.setWindowTitle("Error")
+                    msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+                    msg.exec_()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def open_milesight_func(self):
-        webbrowser.open("https://www.milesight-iot.com/lorawan/hotspot-miner-helium/", new=0, autoraise=True)
+        try:
+            webbrowser.open("https://www.milesight-iot.com/lorawan/hotspot-miner-helium/", new=0, autoraise=True)
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_open_miner_website(self):
-        combopos = self.combo_select_miner.currentIndex()
-        if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
-            addr = minerconfig[1]
-        else:
-            addr = minerconfig[combopos][1]
-        minerurl = 'http://%s/' % addr
-        webbrowser.open(minerurl, new=0, autoraise=True)
+        try:
+            combopos = self.combo_select_miner.currentIndex()
+            if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
+                addr = minerconfig[1]
+            else:
+                addr = minerconfig[combopos][1]
+            minerurl = 'http://%s/' % addr
+            webbrowser.open(minerurl, new=0, autoraise=True)
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
         
     def edit_config(self):
-        os.system('notepad.exe ' + optionspath)
-        self.updatecombo()
-
-    def edit_snapshot(self):
-        os.system('notepad.exe ' + snapconfspath)
-        self.updatecombo()
+        try:
+            os.system('notepad.exe ' + optionspath)
+            self.updatecombo()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def export_config(self):
         name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File')
@@ -661,70 +814,95 @@ class Ui_MainWindow(object):
         self.updatecombo()
 
     def exit_window(self):
-        qApp.quit()
+        quit()
 
     def run_sync_commands(self):
-        self.update_fbdata(f'Syncing . . . This might take a minute . . .\n')
-        self.log = ''
-        f = open(snapconfspath)
-        snaplines = f.readlines()
-        snapurl = snaplines[0]
-        snapurlsnap = snaplines[1]
-        f.close
-        height = '** ERROR WHILE EXECUTING CURL CMD **'
-        cmds = ['docker exec miner miner repair sync_pause',
-                'docker exec miner miner repair sync_cancel',
-                'curl %s' % snapurl,
-                'cd /mnt/mmcblk0p1/miner_data/snap && rm snap-*',
-                'cd /mnt/mmcblk0p1/miner_data/snap && wget %s' % snapurlsnap,
-                'docker exec miner miner snapshot load /var/data/snap/snap- &',
-                'docker exec miner miner repair sync_state',
-                'docker exec miner miner repair sync_resume']
-        do_sync_resume = False
-        for idx, cmd in enumerate(cmds):
-            if idx == 7 and do_sync_resume: # sync resume
-                chk = True
-                while chk:
+        try:
+            self.update_fbdata(f'Syncing . . . This might take a minute . . .\n')
+            self.log = ''
+            f.close
+            height = '** ERROR WHILE EXECUTING CURL CMD **'
+            cmds = ['docker exec miner miner repair sync_pause',
+                    'docker exec miner miner repair sync_cancel',
+                    'curl %s' % snaplatesturl,
+                    'cd /mnt/mmcblk0p1/miner_data/snap && rm snap-*',
+                    'cd /mnt/mmcblk0p1/miner_data/snap && wget %s' % snapurl,
+                    'docker exec miner miner snapshot load /var/data/snap/snap- &',
+                    'docker exec miner miner repair sync_state',
+                    'docker exec miner miner repair sync_resume']
+            do_sync_resume = False
+            for idx, cmd in enumerate(cmds):
+                if idx == 7 and do_sync_resume: # sync resume
+                    chk = True
+                    while chk:
+                        self.update_fbdata(f'${cmd}\n')
+                        out, stderr = self.s.exec_cmd(cmd=cmd)
+                        self.update_fbdata(out)
+                        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+                        self.log += f'#{cmd}\n{out}'
+                        if stderr != '': self.log += f'STDERR: {stderr}'
+                        chk = 'failed' in out
+                        self.text_console.ensureCursorVisible()
+                else:
+                    if idx == 4: # wget
+                        cmd += height
+                    elif idx == 5: # snapshot load
+                        cmd = f"{cmd.split(' &')[0]}{height}{cmd.split('snap-')[1]}"
                     self.update_fbdata(f'${cmd}\n')
                     out, stderr = self.s.exec_cmd(cmd=cmd)
                     self.update_fbdata(out)
-                    if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+                    if stderr != '':
+                        if idx == 4: stderr = '\n'.join(stderr.split('\n')[:13])+'\n'+' '*30+'..........\n'+'\n'.join(stderr.split('\n')[-10:])
+                        self.update_fbdata(f'STDERR: {stderr}')
+                    if idx == 2: # curl
+                        height = out.split('height":')[1].split('}')[0]
+                    elif idx == 6: # sync_state
+                        do_sync_resume = 'sync active' not in out
                     self.log += f'#{cmd}\n{out}'
                     if stderr != '': self.log += f'STDERR: {stderr}'
-                    chk = 'failed' in out
-                    self.text_console.ensureCursorVisible()
-            else:
-                if idx == 4: # wget
-                    cmd += height
-                elif idx == 5: # snapshot load
-                    cmd = f"{cmd.split(' &')[0]}{height}{cmd.split('snap-')[1]}"
-                self.update_fbdata(f'${cmd}\n')
-                out, stderr = self.s.exec_cmd(cmd=cmd)
-                self.update_fbdata(out)
-                if stderr != '':
-                    if idx == 4: stderr = '\n'.join(stderr.split('\n')[:13])+'\n'+' '*30+'..........\n'+'\n'.join(stderr.split('\n')[-10:])
-                    self.update_fbdata(f'STDERR: {stderr}')
-                if idx == 2: # curl
-                    height = out.split('height":')[1].split('}')[0]
-                elif idx == 6: # sync_state
-                    do_sync_resume = 'sync active' not in out
-                self.log += f'#{cmd}\n{out}'
-                if stderr != '': self.log += f'STDERR: {stderr}'
-        self.update_fbdata(f'*** DONE ***\n')
-        self.text_console.ensureCursorVisible()
-        self.save()
-        self.s.disconnect()
+            self.update_fbdata(f'*** DONE ***\n')
+            self.text_console.ensureCursorVisible()
+            self.save()
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
 
     #*************************** BUTTON FUNCTIONS ***************************
     def restart_docker_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
                 return
-            self.tmpthread = threading.Thread(target=self.run_restart_docker_cmd)
-            self.tmpthread.daemon = True
-            self.tmpthread.start()
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowTitle("Restart Docker")
+            messageBox.setText("Do you realy want to restart the Helium Docker Container?")
+            
+            buttonoptionA = messageBox.addButton("Yes", QtWidgets.QMessageBox.YesRole)    
+            buttonoptionB = messageBox.addButton("No", QtWidgets.QMessageBox.AcceptRole)  
+            messageBox.setDefaultButton(buttonoptionB)
+            
+            messageBox.exec_()
+
+            if messageBox.clickedButton() == buttonoptionA:
+                self.tmpthread = threading.Thread(target=self.run_restart_docker_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+            elif messageBox.clickedButton() == buttonoptionB:
+                self.tmpthread = threading.Thread(target=self.run_abort_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def sync_status_func(self):
         if not self.s.is_alive():
@@ -734,7 +912,12 @@ class Ui_MainWindow(object):
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def docker_console_log_func(self):
         if not self.s.is_alive():
@@ -744,17 +927,42 @@ class Ui_MainWindow(object):
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def restart_miner_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
                 return
-            self.tmpthread = threading.Thread(target=self.run_restart_miner_cmd)
-            self.tmpthread.daemon = True
-            self.tmpthread.start()
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowTitle("Restart Miner")
+            messageBox.setText("Do you realy want to reboot the miner?")
+            
+            buttonoptionA = messageBox.addButton("Yes", QtWidgets.QMessageBox.YesRole)    
+            buttonoptionB = messageBox.addButton("No", QtWidgets.QMessageBox.AcceptRole)  
+            messageBox.setDefaultButton(buttonoptionB)
+            
+            messageBox.exec_()
+
+            if messageBox.clickedButton() == buttonoptionA:
+                self.tmpthread = threading.Thread(target=self.run_restart_miner_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+            elif messageBox.clickedButton() == buttonoptionB:
+                self.tmpthread = threading.Thread(target=self.run_abort_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            smsg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def disk_usage_func(self):
         if not self.s.is_alive():
@@ -764,7 +972,12 @@ class Ui_MainWindow(object):
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def update_but_func(self):
         if not self.s.is_alive():
@@ -774,27 +987,72 @@ class Ui_MainWindow(object):
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def quagga_but_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
                 return
-            self.tmpthread = threading.Thread(target=self.run_quagga_cmd)
-            self.tmpthread.daemon = True
-            self.tmpthread.start()
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowTitle("Restart Quagga")
+            messageBox.setText("Do you realy want to restart Quagga?")
+            
+            buttonoptionA = messageBox.addButton("Yes", QtWidgets.QMessageBox.YesRole)    
+            buttonoptionB = messageBox.addButton("No", QtWidgets.QMessageBox.AcceptRole)  
+            messageBox.setDefaultButton(buttonoptionB)
+            
+            messageBox.exec_()
+
+            if messageBox.clickedButton() == buttonoptionA:
+                self.tmpthread = threading.Thread(target=self.run_quagga_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+            elif messageBox.clickedButton() == buttonoptionB:
+                self.tmpthread = threading.Thread(target=self.run_abort_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def restart_lora_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
                 return
-            self.tmpthread = threading.Thread(target=self.run_restart_lora_cmd)
-            self.tmpthread.daemon = True
-            self.tmpthread.start()
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowTitle("Restart LoRa")
+            messageBox.setText("Do you realy want to restart LoRa?")
+            
+            buttonoptionA = messageBox.addButton("Yes", QtWidgets.QMessageBox.YesRole)    
+            buttonoptionB = messageBox.addButton("No", QtWidgets.QMessageBox.AcceptRole)  
+            messageBox.setDefaultButton(buttonoptionB)
+            
+            messageBox.exec_()
+
+            if messageBox.clickedButton() == buttonoptionA:
+                self.tmpthread = threading.Thread(target=self.run_restart_lora_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+            elif messageBox.clickedButton() == buttonoptionB:
+                self.tmpthread = threading.Thread(target=self.run_abort_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def status_but_func(self):
         if not self.s.is_alive():
@@ -804,17 +1062,27 @@ class Ui_MainWindow(object):
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
-    def miner_info_func(self):
+    def miner_ping_func(self):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
                 return
-            self.tmpthread = threading.Thread(target=self.run_miner_info_cmd)
+            self.tmpthread = threading.Thread(target=self.run_miner_ping_cmd)
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_peer_book_func(self):
         if not self.s.is_alive():
@@ -839,7 +1107,12 @@ class Ui_MainWindow(object):
                 self.tmpthread.daemon = True
                 self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_command_func(self):
         if not self.s.is_alive():
@@ -849,7 +1122,12 @@ class Ui_MainWindow(object):
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def sync_resume_func(self):
         if not self.s.is_alive():
@@ -859,7 +1137,12 @@ class Ui_MainWindow(object):
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def open_explorer_func(self):
         if not self.s.is_alive():
@@ -869,7 +1152,12 @@ class Ui_MainWindow(object):
             self.tmpthread.daemon = True
             self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def process_logs_func(self):
         if not self.s.is_alive():
@@ -894,7 +1182,12 @@ class Ui_MainWindow(object):
                 self.tmpthread.daemon = True
                 self.tmpthread.start()
         else:
-            self.throw_custom_error(title='Error', message='Another function already in progress. Please be patient.')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     #################### commands
     def run_process_logs_cmd(self):
@@ -921,7 +1214,12 @@ class Ui_MainWindow(object):
             out, error = process.communicate()
             self.update_fbdata(out.decode("utf-8"))
         except Exception as e:
-            print(f'e : {e}')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_process_logs_l_cmd(self):
         combopos = self.combo_select_miner.currentIndex()
@@ -947,130 +1245,236 @@ class Ui_MainWindow(object):
             out, error = process.communicate()
             self.update_fbdata(out.decode("utf-8"))
         except Exception as e:
-            print(f'e : {e}')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_quagga_cmd(self):
-        cmd = '/etc/init.d/quagga restart'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
-
-    def run_open_explorer_cmd(self):
-        cmds = ['docker exec miner miner info onboarding']
-        self.update_fbdata(f'Generating Helium Explorer Link ...\n')
-        for idx, cmd in enumerate(cmds):
-            out, stderr = self.s.exec_cmd(cmd=cmd)
-            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-            miner_addr = out.split('publicAddress')[1].split('|')[1].split('|')[0]
-        minerurl = 'https://explorer.helium.com/hotspots/%s' % miner_addr
-        webbrowser.open(minerurl, new=0, autoraise=True)
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
-
-    def run_status_cmd(self):
-        cmds = ['docker exec miner miner info name', 
-                'docker exec miner miner info p2p_status',
-                'curl -k --connect-timeout 10 https://api.helium.io/v1/blocks/height',
-                'cat /sys/class/thermal/thermal_zone0/temp']
-        self.update_fbdata(f'Miner Name: ')
-        for idx, cmd in enumerate(cmds):
-            out, stderr = self.s.exec_cmd(cmd=cmd)
-            if idx == 0:
-                self.update_fbdata(out)
-                self.update_fbdata('\n')
-            if idx == 1:
-                self.update_fbdata(out)
-                if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-                miner_height = int(out.split('height')[1].split('|')[1].split('|')[0])
-            elif idx == 2:
-                blockchain_height = int(out.split('height":')[1].split('}')[0])
-            elif idx == 3:
-                cpu_temp = int(out)
-        temp = cpu_temp / 1000
-        self.update_fbdata(f'CPU Temperature: {temp}°C\n\n')
-        diff = miner_height - blockchain_height
-        self.update_fbdata(f'Blockchain height: %s\n' % blockchain_height)
-        self.update_fbdata(f'Miner height: %s\n\n' % miner_height)
-        if diff > 0:
-            self.update_fbdata(f'-> Miner {diff} blocks ahead of the blockchain! (SYNCED)\n')
-        elif diff < 0:
-            self.update_fbdata(f'-> Miner trailing {diff} blocks behind the blockchain. (SYNCING)\n')
-        else:
-            self.update_fbdata(f'-> Miner in complete sync with the blockchain! (SYNCED)\n')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
-
-    def run_restart_lora_cmd(self):
-        cmds = ['/etc/init.d/lora_pkt_fwd stop',
-                '/etc/init.d/lora_pkt_fwd start',
-                'ps | grep lora_pkt_fwd']
-        self.update_fbdata(f'Restarting LoRA Packet Forwarder...\n')
-        for idx, cmd in enumerate(cmds):
+        try:
+            cmd = '/etc/init.d/quagga restart'
             self.update_fbdata(f'${cmd}\n')
             out, stderr = self.s.exec_cmd(cmd=cmd)
             self.update_fbdata(out)
-            self.update_fbdata(f'\n')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
-    def run_miner_info_cmd(self):
-        cmd = 'docker exec miner miner info summary'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+    def run_open_explorer_cmd(self):
+        try:
+            cmds = ['docker exec miner miner info onboarding']
+            self.update_fbdata(f'Generating Helium Explorer Link ...\n')
+            for idx, cmd in enumerate(cmds):
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+                if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+                miner_addr = out.split('publicAddress')[1].split('|')[1].split('|')[0]
+            minerurl = 'https://explorer.helium.com/hotspots/%s' % miner_addr
+            webbrowser.open(minerurl, new=0, autoraise=True)
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
+    def run_status_cmd(self):
+        try:
+            cmds = ['docker exec miner miner info name', 
+                    'docker exec miner miner info p2p_status',
+                    'curl -k --connect-timeout 10 https://api.helium.io/v1/blocks/height',
+                    'cat /sys/class/thermal/thermal_zone0/temp']
+            self.update_fbdata(f'Miner Name: ')
+            for idx, cmd in enumerate(cmds):
+                try:
+                    out, stderr = self.s.exec_cmd(cmd=cmd)
+                    if idx == 0:
+                        self.update_fbdata(out)
+                        self.update_fbdata('\n')
+                    if idx == 1:
+                        self.update_fbdata(out)
+                        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+                        miner_height = int(out.split('height')[1].split('|')[1].split('|')[0])
+                    elif idx == 2:
+                        blockchain_height = int(out.split('height":')[1].split('}')[0])
+                    elif idx == 3:
+                        cpu_temp = int(out)
+                except:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setText("One or more input flieds are empty!")
+                    msg.setWindowTitle("Error connecting")
+                    msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+                    msg.exec_()
+            temp = cpu_temp / 1000
+            self.update_fbdata(f'CPU Temperature: {temp}°C\n\n')
+            diff = miner_height - blockchain_height
+            self.update_fbdata(f'Blockchain height: %s\n' % blockchain_height)
+            self.update_fbdata(f'Miner height: %s\n\n' % miner_height)
+            if diff > 0:
+                self.update_fbdata(f'-> Miner {diff} blocks ahead of the blockchain! (SYNCED)\n')
+            elif diff < 0:
+                self.update_fbdata(f'-> Miner trailing {diff} blocks behind the blockchain. (SYNCING)\n')
+            else:
+                self.update_fbdata(f'-> Miner in complete sync with the blockchain! (SYNCED)\n')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
+    def run_restart_lora_cmd(self):
+        try:
+            cmds = ['/etc/init.d/lora_pkt_fwd stop',
+                    '/etc/init.d/lora_pkt_fwd start',
+                    'ps | grep lora_pkt_fwd']
+            self.update_fbdata(f'Restarting LoRA Packet Forwarder...\n')
+            for idx, cmd in enumerate(cmds):
+                self.update_fbdata(f'${cmd}\n')
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+                self.update_fbdata(out)
+                self.update_fbdata(f'\n')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
+    def run_miner_ping_cmd(self):
+        try:
+            cmd = 'ping -c 20 -q google.com'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_restart_miner_cmd(self):
-        cmd = 'reboot now'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+        try:
+            cmd = 'reboot now'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
+    def run_abort_cmd(self):
+        try:
+            self.s.disconnect()
+            self.howto()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_restart_docker_cmd(self):
-        cmd = 'docker stop miner && docker start miner'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+        try:
+            cmd = 'docker stop miner && docker start miner'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_sync_status_log_cmd(self):
-        cmd = 'docker exec miner miner repair sync_state'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+        try:
+            cmd = 'docker exec miner miner repair sync_state'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_disk_usage_cmd(self):
-        cmd = 'df -h /mnt/mmcblk0p1'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+        try:
+            cmd = 'df -h /mnt/mmcblk0p1'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def docker_console_log_cmd(self):
-        cmd = 'docker exec miner cat /var/data/log/console.log'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+        try:
+            cmd = 'docker exec miner cat /var/data/log/console.log'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_peer_book_c_cmd(self):
+        try:
             cmd = 'docker exec miner miner peer book -c'
             self.update_fbdata(f'${cmd}\n')
             out, stderr = self.s.exec_cmd(cmd=cmd)
@@ -1078,8 +1482,16 @@ class Ui_MainWindow(object):
             if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
             self.update_fbdata(f'*** DONE ***\n')
             self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_peer_book_s_cmd(self):
+        try:
             cmd = 'docker exec miner miner peer book -s'
             self.update_fbdata(f'${cmd}\n')
             out, stderr = self.s.exec_cmd(cmd=cmd)
@@ -1087,73 +1499,140 @@ class Ui_MainWindow(object):
             if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
             self.update_fbdata(f'*** DONE ***\n')
             self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_line_command_cmd(self):
-        cmd = self.lineedit_line_command.text()
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+        try:
+            cmd = self.lineedit_line_command.text()
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_sync_resume(self):
-        cmd = 'docker exec miner miner repair sync_resume'
-        self.update_fbdata(f'${cmd}\n')
-        out, stderr = self.s.exec_cmd(cmd=cmd)
-        self.update_fbdata(out)
-        if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
-        self.update_fbdata(f'*** DONE ***\n')
-        self.s.disconnect()
+        try:
+            cmd = 'docker exec miner miner repair sync_resume'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
 # Connect Sequence
     def conn_sequence(self):
-        combopos = self.combo_select_miner.currentIndex()
-        if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
-            addr = minerconfig[1]
-            user = minerconfig[2]
-            passwd = minerconfig[3]
-            port = minerconfig[4]
-        else:
-            addr = minerconfig[combopos][1]
-            user = minerconfig[combopos][2]
-            passwd = minerconfig[combopos][3]
-            port = minerconfig[combopos][4]
-        if addr[-1] == 'X':
-            self.throw_custom_error(title='Error', message='Enter device IP address.')
-            return None
-        if not self.validate_ip_address(addr):
-            self.throw_custom_error(title='Error', message='Invalid IP address.')
-            return None
-        if any([x==None for x in [user, passwd]]):
-            self.throw_custom_error(title='Error', message='Error reading options.config file.')
-            return None
-        args = [addr, user, int(port), passwd]
-        if all([arg != None for arg in args]):
-            self.addr, self.user, self.port, self.passwd = args
-            print(f'args : {args}')
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        if sock.connect_ex((addr, int(port))) != 0:
+        try:
+            combopos = self.combo_select_miner.currentIndex()
+            if len(minerconfig.shape) == 1 and not minerconfig.shape == (0,):
+                addr = minerconfig[1]
+                user = minerconfig[2]
+                passwd = minerconfig[3]
+                port = minerconfig[4]
+            else:
+                addr = minerconfig[combopos][1]
+                user = minerconfig[combopos][2]
+                passwd = minerconfig[combopos][3]
+                port = minerconfig[combopos][4]
+            if addr[-1] == 'X':
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setText("Enter device IP address.")
+                msg.setWindowTitle("Error")
+                msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+                msg.exec_()
+                return None
+            if not self.validate_ip_address(addr):
+                try:
+                    dns = addr 
+                    addr = socket.gethostbyname(dns)
+                    print("Adresse: %s" % addr)
+                except:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setText("Invalid IP or DNS address.")
+                    msg.setWindowTitle("Error")
+                    msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+                    msg.exec_()
+                    print("Adresse: %s" % addr)
+                    return None
+            if any([x==None for x in [user, passwd]]):
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setText("Error reading options.config file.")
+                msg.setWindowTitle("Error")
+                msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+                msg.exec_()
+                return None
+            args = [addr, user, int(port), passwd]
+            if all([arg != None for arg in args]):
+                self.addr, self.user, self.port, self.passwd = args
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            if sock.connect_ex((addr, int(port))) != 0:
+                sock.close()
+                self.throw_trouble_connecting_error()
+                return None
             sock.close()
-            self.throw_trouble_connecting_error()
-            return None
-        sock.close()
-        self.s.set_config(addr=addr, user=user, port=port, password=passwd)
-        connection = self.s.connect()
-        self.clear_fbdata()
-        print(connection)
-        if not self.s.is_alive() or connection == None:
-            self.update_fbdata(f'Connection Error.\n')
-            self.update_fbdata(f'%s' % connection)
-            return None
-        return True
+            self.s.set_config(addr=addr, user=user, port=port, password=passwd)
+            connection = self.s.connect()
+            self.clear_fbdata()
+            if not self.s.is_alive() or connection == None:
+                self.update_fbdata(f'Connection Error.\n')
+                self.update_fbdata(f'%s' % connection)
+                return None
+            return True
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def update_fbdata(self, d):
-        self.text_console.insertPlainText(d)
+        try:
+            self.text_console.insertPlainText(d)
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def clear_fbdata(self):
-        self.text_console.clear()
+        try:
+            self.text_console.clear()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
 
     def validate_ip_address(self, address):
         try:
@@ -1167,16 +1646,30 @@ class Ui_MainWindow(object):
             with open(self.savepath, 'w') as f:
                 f.write(self.log)
         except Exception as e:
-            self.throw_custom_error('ERROR', 'Error trying to save log file.')
-            print(f'e : {e}')
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 #*************************** BUTTON FUNCTIONS ***************************
 
 #**************************** THROW ERROR ****************************
     def throw_trouble_connecting_error(self):
-        messagebox.showwarning(title='ERROR', message='Having trouble connecting to device.')
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText("Having trouble connecting to device.")
+        msg.setWindowTitle("Error")
+        msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+        msg.exec_()
 
     def throw_custom_error(self, title, message):
-        messagebox.showwarning(title=title, message=message)
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText(message)
+        msg.setWindowTitle(title)
+        msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+        msg.exec_()
 #**************************** THROW ERROR ****************************
 
 ##################################################################
@@ -1185,15 +1678,14 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Miner Tools"))
         self.label_select_miner.setText(_translate("MainWindow", "Select Miner:"))
         self.button_open_in_browser.setText(_translate("MainWindow", "Open in Browser"))
-        self.button_edit_config.setText(_translate("MainWindow", "Edit Config"))
-        self.button_reload_config.setText(_translate("MainWindow", "Reload Config"))
+        self.button_settings.setText(_translate("MainWindow", "Settings"))
         self.button_helium_explorer.setText(_translate("MainWindow", "Helium Explorer"))
         self.button_check_update.setText(_translate("MainWindow", "Check Update"))
         self.label_version.setText(_translate("MainWindow", "Version:"))
         self.label_version_numer.setText(_translate("MainWindow", version_build))
         self.button_donate.setText(_translate("MainWindow", "Donate"))
         self.button_status.setText(_translate("MainWindow", "Status"))
-        self.button_info.setText(_translate("MainWindow", "Info"))
+        self.button_ping.setText(_translate("MainWindow", "PING"))
         self.button_sync_status.setText(_translate("MainWindow", "Sync Status"))
         self.button_peer_book.setText(_translate("MainWindow", "Peer Book"))
         self.button_console_log.setText(_translate("MainWindow", "Console Log"))
@@ -1209,7 +1701,6 @@ class Ui_MainWindow(object):
         self.button_send_command.setText(_translate("MainWindow", "Send Command"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.action_exit.setText(_translate("MainWindow", "Exit"))
-        self.action_edit_config.setText(_translate("MainWindow", "Edit Config"))
         self.action_import_config.setText(_translate("MainWindow", "Import Config"))
         self.action_export_config.setText(_translate("MainWindow", "Export Config"))
-        self.action_edit_snap_url.setText(_translate("MainWindow", "Edit Snap URL"))
+        self.action_edit_config.setText(_translate("MainWindow", "Edit Config"))
