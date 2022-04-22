@@ -3,8 +3,8 @@ import sys
 from cx_Freeze import setup, Executable
 
 #Application information
-name = 'Miner Controler'
-version = '2.0.1'
+name = 'MinerTools'
+version = '2.0.3'
 author = 'Secarius'
 author_email = 'sample@example.xxx'
 url = 'http://example.xxx'
@@ -47,7 +47,7 @@ mainexe = Executable(
     target_name = 'MinerTools.exe',
     base = base,
     icon = icon,
-    shortcut_name ="Milesight MinerTools",
+    shortcut_name ="Secarius MinerTools",
     shortcut_dir ="DesktopFolder"
 )
 

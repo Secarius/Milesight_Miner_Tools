@@ -31,7 +31,7 @@ import shutil
 import configparser
 from gui.minertools_gui_settings_popup import Ui_Dialog as Settingsdiag
 
-version_build = "2.0.1"
+version_build = "2.0.3"
 settingsini = configparser.ConfigParser()
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 settingsspath = '%s\\settings.ini' % dir_path
@@ -53,7 +53,10 @@ except IOError:
 finally:
     f.close()
 if not os.path.exists(settingsspath):
-    settingsini['systemsettings'] = {'highdpi': '1', 'showlogo': '1', 'snapurl': 'http://snapshots-wtf.sensecapmx.cloud/snap-', 'snaplatesturl': 'http://snapshots-wtf.sensecapmx.cloud/latest-snap.json', 'constxtcolor': '#A4E87F', 'consbackcolor': '#212121'}
+    settingsini['systemsettings'] = {'highdpi': '1', 'showlogo': '1', 'snapurl': 'http://snapshots-wtf.sensecapmx.cloud/snap-', 
+    'snaplatesturl': 'http://snapshots-wtf.sensecapmx.cloud/latest-snap.json', 'constxtcolor': '#A4E87F', 'consbackcolor': '#212121',
+    'pui_value': '600000', 'mic_value': '60', 'ogc_value': '20', 'ncm_value': '16', 'progbut1_name': 'Programmable1', 'progbut1_cmd': 'uptime', 
+    'progbut2_name': 'Programmable2', 'progbut2_cmd': 'uptime', 'progbut3_name': 'Programmable3', 'progbut3_cmd': 'uptime'}
     write_file()
 #load settingsini options
 settingsini.read(settingsspath)
@@ -64,6 +67,10 @@ global constxtcolor
 global consbackcolor
 global showlogo
 global logopath
+global pui_value
+global mic_value
+global ogc_value
+global ncm_value
 try:
     highdpi = settingsini.get('systemsettings', 'highdpi')
 except configparser.NoOptionError:
@@ -73,7 +80,7 @@ except configparser.NoOptionError:
 try:
     showlogo = settingsini.get('systemsettings', 'showlogo')
 except configparser.NoOptionError:
-    settingsini.set('systemsettings', 'showlogo', '0')
+    settingsini.set('systemsettings', 'showlogo', '1')
     write_file()
 try:
     snapurl = settingsini.get('systemsettings', 'snapurl')
@@ -95,6 +102,57 @@ try:
 except configparser.NoOptionError:
     settingsini.set('systemsettings', 'consbackcolor', '#212121')
     write_file()
+try:
+    pui_value = settingsini.get('systemsettings', 'pui_value')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'pui_value', '600000')
+    write_file()
+try:
+    mic_value = settingsini.get('systemsettings', 'mic_value')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'mic_value', '60')
+    write_file()
+try:
+    ogc_value = settingsini.get('systemsettings', 'ogc_value')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'ogc_value', '20')
+    write_file()
+try:
+    ncm_value = settingsini.get('systemsettings', 'ncm_value')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'ncm_value', '16')
+    write_file()
+try:
+    progbut1_cmd = settingsini.get('systemsettings', 'progbut1_cmd')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'progbut1_cmd', 'uptime')
+    write_file()
+try:
+    progbut1_name = settingsini.get('systemsettings', 'progbut1_name')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'progbut1_name', 'Programmable1')
+    write_file()
+try:
+    progbut2_cmd = settingsini.get('systemsettings', 'progbut2_cmd')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'progbut2_cmd', 'uptime')
+    write_file()
+try:
+    progbut2_name = settingsini.get('systemsettings', 'progbut2_name')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'progbut2_name', 'Programmable3')
+    write_file()
+try:
+    progbut3_cmd = settingsini.get('systemsettings', 'progbut3_cmd')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'progbut3_cmd', 'uptime')
+    write_file()
+try:
+    progbut3_name = settingsini.get('systemsettings', 'progbut3_name')
+except configparser.NoOptionError:
+    settingsini.set('systemsettings', 'progbut3_name', 'Programmable3')
+    write_file()
+
 if showlogo == "1":
     logopath = "background-image:url(:/Logo/logo.png);"
 else:
@@ -113,7 +171,7 @@ except IOError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1136, 717)
+        MainWindow.resize(1136, 737)
         MainWindow.setMinimumSize(QtCore.QSize(1136, 0))
         MainWindow.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -246,7 +304,6 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.top_menu_layout)
         self.text_console = QtWidgets.QPlainTextEdit(self.centralwidget)
         self.text_console.setEnabled(True)
-        
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -430,7 +487,7 @@ class Ui_MainWindow(object):
         self.bottom_functions_layout.addWidget(self.button_restart_miner)
         self.verticalLayout.addLayout(self.bottom_functions_layout)
         self.bottom_send_command_layout = QtWidgets.QHBoxLayout()
-        self.bottom_send_command_layout.setSpacing(5)
+        self.bottom_send_command_layout.setSpacing(1)
         self.bottom_send_command_layout.setObjectName("bottom_send_command_layout")
         self.lineedit_line_command = QtWidgets.QLineEdit(self.centralwidget)
         self.lineedit_line_command.setMinimumSize(QtCore.QSize(0, 30))
@@ -453,6 +510,42 @@ class Ui_MainWindow(object):
         self.button_send_command.setWhatsThis("")
         self.button_send_command.setObjectName("button_send_command")
         self.bottom_send_command_layout.addWidget(self.button_send_command)
+        self.button_tweak = QtWidgets.QPushButton(self.centralwidget)
+        self.button_tweak.setMinimumSize(QtCore.QSize(0, 30))
+        font = QtGui.QFont()
+        font.setPixelSize(13)
+        font.setBold(True)
+        font.setWeight(75)
+        self.button_tweak.setFont(font)
+        self.button_tweak.setObjectName("button_tweak")
+        self.bottom_send_command_layout.addWidget(self.button_tweak)
+        self.button_prog1 = QtWidgets.QPushButton(self.centralwidget)
+        self.button_prog1.setMinimumSize(QtCore.QSize(0, 30))
+        font = QtGui.QFont()
+        font.setPixelSize(13)
+        font.setBold(True)
+        font.setWeight(75)
+        self.button_prog1.setFont(font)
+        self.button_prog1.setObjectName("button_prog1")
+        self.bottom_send_command_layout.addWidget(self.button_prog1)
+        self.button_prog2 = QtWidgets.QPushButton(self.centralwidget)
+        self.button_prog2.setMinimumSize(QtCore.QSize(0, 30))
+        font = QtGui.QFont()
+        font.setPixelSize(13)
+        font.setBold(True)
+        font.setWeight(75)
+        self.button_prog2.setFont(font)
+        self.button_prog2.setObjectName("button_prog2")
+        self.bottom_send_command_layout.addWidget(self.button_prog2)
+        self.button_prog3 = QtWidgets.QPushButton(self.centralwidget)
+        self.button_prog3.setMinimumSize(QtCore.QSize(0, 30))
+        font = QtGui.QFont()
+        font.setPixelSize(13)
+        font.setBold(True)
+        font.setWeight(75)
+        self.button_prog3.setFont(font)
+        self.button_prog3.setObjectName("button_prog3")
+        self.bottom_send_command_layout.addWidget(self.button_prog3)
         self.verticalLayout.addLayout(self.bottom_send_command_layout)
         self.verticalLayout.setStretch(1, 10)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -470,9 +563,12 @@ class Ui_MainWindow(object):
         self.action_import_config.setObjectName("action_import_config")
         self.action_export_config = QtWidgets.QAction(MainWindow)
         self.action_export_config.setObjectName("action_export_config")
+        self.action_edit_snap_url = QtWidgets.QAction(MainWindow)
+        self.action_edit_snap_url.setObjectName("action_edit_snap_url")
         self.menuFile.addAction(self.action_edit_config)
         self.menuFile.addAction(self.action_import_config)
         self.menuFile.addAction(self.action_export_config)
+        self.menuFile.addAction(self.action_edit_snap_url)
         self.menuFile.addAction(self.action_exit)
         self.menubar.addAction(self.menuFile.menuAction())
 
@@ -510,6 +606,13 @@ class Ui_MainWindow(object):
         self.button_restart_docker.clicked.connect(self.restart_docker_func)
         self.button_process_logs.clicked.connect(self.process_logs_func)
         self.button_donate.clicked.connect(self.donate_text_func)
+        self.button_prog1.clicked.connect(self.prog_but1_func)
+        self.button_prog2.clicked.connect(self.prog_but2_func)
+        self.button_prog3.clicked.connect(self.prog_but3_func)
+        self.button_tweak.clicked.connect(self.run_tweak_func)
+        self.button_prog1.setText(progbut1_name)
+        self.button_prog2.setText(progbut2_name)
+        self.button_prog3.setText(progbut3_name)
     
     def readconfig(self):
         settingsini.read(settingsspath)
@@ -520,6 +623,16 @@ class Ui_MainWindow(object):
         global consbackcolor
         global showlogo
         global logopath
+        global pui_value
+        global mic_value
+        global ogc_value
+        global ncm_value
+        global progbut1_cmd
+        global progbut1_name
+        global progbut2_cmd
+        global progbut2_name
+        global progbut3_cmd
+        global progbut3_name
         try:
             highdpi = settingsini.get('systemsettings', 'highdpi')
         except configparser.NoOptionError:
@@ -551,11 +664,65 @@ class Ui_MainWindow(object):
         except configparser.NoOptionError:
             settingsini.set('systemsettings', 'consbackcolor', '#212121')
             write_file()
+        try:
+            pui_value = settingsini.get('systemsettings', 'pui_value')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'pui_value', '600000')
+            write_file()
+        try:
+            mic_value = settingsini.get('systemsettings', 'mic_value')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'mic_value', '60')
+            write_file()
+        try:
+            ogc_value = settingsini.get('systemsettings', 'ogc_value')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'ogc_value', '20')
+            write_file()
+        try:
+            ncm_value = settingsini.get('systemsettings', 'ncm_value')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'ncm_value', '16')
+            write_file()
+        try:
+            progbut1_cmd = settingsini.get('systemsettings', 'progbut1_cmd')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'progbut1_cmd', 'uptime')
+            write_file()
+        try:
+            progbut1_name = settingsini.get('systemsettings', 'progbut1_name')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'progbut1_name', 'Programmable1')
+            write_file()
+        try:
+            progbut2_cmd = settingsini.get('systemsettings', 'progbut2_cmd')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'progbut2_cmd', 'uptime')
+            write_file()
+        try:
+            progbut2_name = settingsini.get('systemsettings', 'progbut2_name')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'progbut2_name', 'Programmable2')
+            write_file()
+        try:
+            progbut3_cmd = settingsini.get('systemsettings', 'progbut3_cmd')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'progbut3_cmd', 'uptime')
+            write_file()
+        try:
+            progbut3_name = settingsini.get('systemsettings', 'progbut3_name')
+        except configparser.NoOptionError:
+            settingsini.set('systemsettings', 'progbut3_name', 'Programmable3')
+            write_file()
+
         if showlogo == "1":
             logopath = "background-image:url(:/Logo/logo.png);"
         else:
             logopath = ""
         self.text_console.setStyleSheet("background-color:%s;color:%s;%sbackground-repeat:no-repeat;background-position:center right" % (consbackcolor,constxtcolor,logopath))
+        self.button_prog1.setText(progbut1_name)
+        self.button_prog2.setText(progbut2_name)
+        self.button_prog3.setText(progbut3_name)
 
     def open_settings(self):
         try:
@@ -595,7 +762,7 @@ class Ui_MainWindow(object):
             if (version.parse(version_build) < version.parse(online_version)):
                 self.update_fbdata(f'New Version availible!\n')
                 updateurl = "https://github.com/Secarius/Milesight_Miner_Tools/raw/main/%s" % zippackage
-                reply = QtWidgets.QMessageBox.question(self, 'Message',
+                reply = QtWidgets.QMessageBox.question(self, 'Check Update',
                     "New Update availible. Do you want to update?", QtWidgets.QMessageBox.Yes | 
                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if reply == QtWidgets.QMessageBox.Yes:
@@ -613,7 +780,7 @@ class Ui_MainWindow(object):
                     sys.exit()
             else:
                 self.update_fbdata(f'No Update availible!\n')
-                reply = QtWidgets.QMessageBox.question(self, 'Message',
+                reply = QtWidgets.QMessageBox.question(self, 'Check Update',
                     "No Update available", QtWidgets.QMessageBox.Ok)
         except Exception as e:     # most generic exception you can catch
             msg = QMessageBox()
@@ -681,7 +848,7 @@ class Ui_MainWindow(object):
             self.update_fbdata(f'\n')
             self.update_fbdata(f'How to use the Miner Tools:\n')
             self.update_fbdata(f'\n')
-            self.update_fbdata(f'Get started blog post from DCYeahThatsMe:')
+            self.update_fbdata(f'Get started blog post from DCYeahThatsMe: \n')
             self.update_fbdata(f'https://minertools.doit.net')
             self.update_fbdata(f'\n\n')
             self.update_fbdata(f'Status:          get short status of miner docker container.\n')
@@ -872,6 +1039,92 @@ class Ui_MainWindow(object):
             msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
             msg.exec_()
 
+    def run_tweak_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowTitle("Tweak your Miner")
+            messageBox.setText("Do you want to tweak your miner?")
+            
+            buttonoptionA = messageBox.addButton("Yes", QtWidgets.QMessageBox.YesRole)    
+            buttonoptionB = messageBox.addButton("No", QtWidgets.QMessageBox.AcceptRole)  
+            messageBox.setDefaultButton(buttonoptionB)
+            
+            messageBox.exec_()
+
+            if messageBox.clickedButton() == buttonoptionA:
+                self.tmpthread = threading.Thread(target=self.run_tweak_commands)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+            elif messageBox.clickedButton() == buttonoptionB:
+                self.tmpthread = threading.Thread(target=self.run_abort_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+        else:
+            smsg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
+    def run_tweak_commands(self):
+        self.update_fbdata(f'Tweaking Peer Book . . .\n')
+        self.readconfig()
+        try:
+            cmd = 'find / -name "sys.config" | grep "/miner/config"'
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata("Found locations: \n")
+            self.update_fbdata(out)
+            syspath = out
+            self.update_fbdata("Changing values....\n")
+            for sysconfigpath in syspath.splitlines():
+                cmd = 'sed -i \'s/peerbook_update_interval, .*/peerbook_update_interval, %s},/g\' %s' % (pui_value,sysconfigpath)
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+            for sysconfigpath in syspath.splitlines():
+                cmd = 'sed -i \'s/max_inbound_connections, .*/max_inbound_connections, %s},/g\' %s' % (mic_value,sysconfigpath)
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+            for sysconfigpath in syspath.splitlines():
+                cmd = 'sed -i \'s/outbound_gossip_connections, .*/outbound_gossip_connections, %s},/g\' %s' % (ogc_value,sysconfigpath)
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+            for sysconfigpath in syspath.splitlines():
+                cmd = 'sed -i \'s/num_consensus_members, .*/num_consensus_members, %s},/g\' %s' % (ncm_value,sysconfigpath)
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+            cmd = 'docker stop miner && docker start miner'
+            self.update_fbdata(f'Restarting Docker....\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(f'Restart done.\n')
+            self.update_fbdata("New Values: \n")
+            cmd = 'find / -name "sys.config" | grep "/miner/config"'
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            syspath = out
+            for sysconfigpath in syspath.splitlines():
+                self.update_fbdata(sysconfigpath)
+                self.update_fbdata("\n\n")
+                cmd = 'cat %s | grep "peerbook_update_interval"' % sysconfigpath
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+                self.update_fbdata("Changed to: %s" % out)
+                cmd = 'cat %s | grep "max_inbound_connections"' % sysconfigpath
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+                self.update_fbdata("Changed to: %s" % out)
+                cmd = 'cat %s | grep "outbound_gossip_connections"' % sysconfigpath
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+                self.update_fbdata("Changed to: %s" % out)
+                cmd = 'cat %s | grep "num_consensus_members"' % sysconfigpath
+                out, stderr = self.s.exec_cmd(cmd=cmd)
+                self.update_fbdata("Changed to: %s\n" % out)
+            self.update_fbdata(f'*** DONE ***\n')
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     #*************************** BUTTON FUNCTIONS ***************************
     def restart_docker_func(self):
@@ -918,6 +1171,52 @@ class Ui_MainWindow(object):
             msg.setWindowTitle("Error")
             msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
             msg.exec_()
+
+    def prog_but1_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_progbut1_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+    
+    def prog_but2_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_progbut2_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
+    def prog_but3_func(self):
+        if not self.s.is_alive():
+            if self.conn_sequence() == None:
+                return
+            self.tmpthread = threading.Thread(target=self.run_progbut3_cmd)
+            self.tmpthread.daemon = True
+            self.tmpthread.start()
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Another function already in progress. Please be patient.")
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
 
     def docker_console_log_func(self):
         if not self.s.is_alive():
@@ -983,11 +1282,26 @@ class Ui_MainWindow(object):
         if not self.s.is_alive():
             if self.conn_sequence() == None:
                 return
-            self.tmpthread = threading.Thread(target=self.run_sync_commands)
-            self.tmpthread.daemon = True
-            self.tmpthread.start()
+            messageBox = QtWidgets.QMessageBox(self)
+            messageBox.setWindowTitle("Fast Sync Miner")
+            messageBox.setText("Do you want to run Fast Sync on miner?")
+            
+            buttonoptionA = messageBox.addButton("Yes", QtWidgets.QMessageBox.YesRole)    
+            buttonoptionB = messageBox.addButton("No", QtWidgets.QMessageBox.AcceptRole)  
+            messageBox.setDefaultButton(buttonoptionB)
+            
+            messageBox.exec_()
+
+            if messageBox.clickedButton() == buttonoptionA:
+                self.tmpthread = threading.Thread(target=self.run_sync_commands)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
+            elif messageBox.clickedButton() == buttonoptionB:
+                self.tmpthread = threading.Thread(target=self.run_abort_cmd)
+                self.tmpthread.daemon = True
+                self.tmpthread.start()
         else:
-            msg = QMessageBox()
+            smsg = QMessageBox()
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Another function already in progress. Please be patient.")
             msg.setWindowTitle("Error")
@@ -1438,6 +1752,58 @@ class Ui_MainWindow(object):
             msg.setWindowTitle("Error")
             msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
             msg.exec_()
+    
+    def run_progbut1_cmd(self):
+        self.readconfig()
+        try:
+            cmd = progbut1_cmd
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+    
+    def run_progbut2_cmd(self):
+        try:
+            cmd = progbut2_cmd
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
+
+    def run_progbut3_cmd(self):
+        try:
+            cmd = progbut3_cmd
+            self.update_fbdata(f'${cmd}\n')
+            out, stderr = self.s.exec_cmd(cmd=cmd)
+            self.update_fbdata(out)
+            if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
+            self.update_fbdata(f'*** DONE ***\n')
+            self.s.disconnect()
+        except Exception as e:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(str(e))
+            msg.setWindowTitle("Error")
+            msg.setWindowIcon(QtGui.QIcon('assets/helium.ico'))
+            msg.exec_()
 
     def run_disk_usage_cmd(self):
         try:
@@ -1678,8 +2044,8 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Miner Tools"))
         self.label_select_miner.setText(_translate("MainWindow", "Select Miner:"))
         self.button_open_in_browser.setText(_translate("MainWindow", "Open in Browser"))
-        self.button_settings.setText(_translate("MainWindow", "Settings"))
         self.button_helium_explorer.setText(_translate("MainWindow", "Helium Explorer"))
+        self.button_settings.setText(_translate("MainWindow", "Settings"))
         self.button_check_update.setText(_translate("MainWindow", "Check Update"))
         self.label_version.setText(_translate("MainWindow", "Version:"))
         self.label_version_numer.setText(_translate("MainWindow", version_build))
@@ -1699,8 +2065,13 @@ class Ui_MainWindow(object):
         self.button_restart_miner.setText(_translate("MainWindow", "Restart Miner"))
         self.lineedit_line_command.setText(_translate("MainWindow", "uptime"))
         self.button_send_command.setText(_translate("MainWindow", "Send Command"))
+        self.button_tweak.setText(_translate("MainWindow", "Tweak Peerbook"))
+        self.button_prog1.setText(_translate("MainWindow", "Programmable1"))
+        self.button_prog2.setText(_translate("MainWindow", "Programmable2"))
+        self.button_prog3.setText(_translate("MainWindow", "Programmable3"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.action_exit.setText(_translate("MainWindow", "Exit"))
+        self.action_edit_config.setText(_translate("MainWindow", "Edit Config"))
         self.action_import_config.setText(_translate("MainWindow", "Import Config"))
         self.action_export_config.setText(_translate("MainWindow", "Export Config"))
-        self.action_edit_config.setText(_translate("MainWindow", "Edit Config"))
+        self.action_edit_snap_url.setText(_translate("MainWindow", "Edit Snap URL"))
