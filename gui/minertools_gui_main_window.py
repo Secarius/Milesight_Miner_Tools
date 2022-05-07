@@ -31,7 +31,7 @@ import shutil
 import configparser
 from gui.minertools_gui_settings_popup import Ui_Dialog as Settingsdiag
 
-version_build = "2.0.3"
+version_build = "2.0.4"
 settingsini = configparser.ConfigParser()
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 settingsspath = '%s\\settings.ini' % dir_path

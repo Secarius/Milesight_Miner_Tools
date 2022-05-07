@@ -3,15 +3,26 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication
 import configparser
-from gui.minertools_gui_main_window import Ui_MainWindow
 
-settingsini = configparser.ConfigParser()
-dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
-settingsspath = '%s\\settings.ini' % dir_path
 
 def write_file():
     settingsini.write(open(settingsspath, 'w'))
 
+settingsini = configparser.ConfigParser()
+dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
+settingsspath = '%s\\settings.ini' % dir_path
+optionspath = '%s\\options.config' % dir_path
+
+if not os.path.exists(dir_path):
+    os.makedirs(dir_path)
+try:
+    f = open(optionspath)
+except IOError:
+    f = open(optionspath,"w+")
+    f.write("#MinerName,IP,User,Password,Port\n")
+    f.close
+finally:
+    f.close()
 if not os.path.exists(settingsspath):
     settingsini['systemsettings'] = {'highdpi': '1', 'showlogo': '1', 'snapurl': 'http://snapshots-wtf.sensecapmx.cloud/snap-', 
     'snaplatesturl': 'http://snapshots-wtf.sensecapmx.cloud/latest-snap.json', 'constxtcolor': '#A4E87F', 'consbackcolor': '#212121',
@@ -101,6 +112,8 @@ try:
 except configparser.NoOptionError:
     settingsini.set('systemsettings', 'progbut3_name', 'Programmable3')
     write_file()
+
+from gui.minertools_gui_main_window import Ui_MainWindow
 
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons

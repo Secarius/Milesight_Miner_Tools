@@ -4,7 +4,7 @@ from cx_Freeze import setup, Executable
 
 #Application information
 name = 'MinerTools'
-version = '2.0.3'
+version = '2.0.4'
 author = 'Secarius'
 author_email = 'sample@example.xxx'
 url = 'http://example.xxx'
