@@ -31,7 +31,7 @@ import shutil
 import configparser
 from gui.minertools_gui_settings_popup import Ui_Dialog as Settingsdiag
 
-version_build = "2.0.4"
+version_build = "2.0.5"
 settingsini = configparser.ConfigParser()
 dir_path = '%s\\MinerTools\\' % os.environ['APPDATA'] 
 settingsspath = '%s\\settings.ini' % dir_path
@@ -985,21 +985,26 @@ class Ui_MainWindow(object):
 
     def run_sync_commands(self):
         try:
+            res = requests.get(snaplatesturl)
+            data = res.json()
+            height = str((data["height"]))
+            print("Höhe: %s" % height)
+            getsnap = snapurl+height
             self.update_fbdata(f'Syncing . . . This might take a minute . . .\n')
+            print('docker exec miner miner snapshot load /var/data/snap/snap-%s &' % height)
+            self.update_fbdata(f'\n')
             self.log = ''
             f.close
-            height = '** ERROR WHILE EXECUTING CURL CMD **'
             cmds = ['docker exec miner miner repair sync_pause',
                     'docker exec miner miner repair sync_cancel',
-                    'curl %s' % snaplatesturl,
                     'cd /mnt/mmcblk0p1/miner_data/snap && rm snap-*',
-                    'cd /mnt/mmcblk0p1/miner_data/snap && wget %s' % snapurl,
-                    'docker exec miner miner snapshot load /var/data/snap/snap- &',
+                    'cd /mnt/mmcblk0p1/miner_data/snap && wget %s' % getsnap,
+                    'docker exec miner miner snapshot load /var/data/snap/snap-%s &' % height,
                     'docker exec miner miner repair sync_state',
                     'docker exec miner miner repair sync_resume']
             do_sync_resume = False
             for idx, cmd in enumerate(cmds):
-                if idx == 7 and do_sync_resume: # sync resume
+                if idx == 6 and do_sync_resume: # sync resume
                     chk = True
                     while chk:
                         self.update_fbdata(f'${cmd}\n')
@@ -1011,19 +1016,10 @@ class Ui_MainWindow(object):
                         chk = 'failed' in out
                         self.text_console.ensureCursorVisible()
                 else:
-                    if idx == 4: # wget
-                        cmd += height
-                    elif idx == 5: # snapshot load
-                        cmd = f"{cmd.split(' &')[0]}{height}{cmd.split('snap-')[1]}"
                     self.update_fbdata(f'${cmd}\n')
                     out, stderr = self.s.exec_cmd(cmd=cmd)
                     self.update_fbdata(out)
-                    if stderr != '':
-                        if idx == 4: stderr = '\n'.join(stderr.split('\n')[:13])+'\n'+' '*30+'..........\n'+'\n'.join(stderr.split('\n')[-10:])
-                        self.update_fbdata(f'STDERR: {stderr}')
-                    if idx == 2: # curl
-                        height = out.split('height":')[1].split('}')[0]
-                    elif idx == 6: # sync_state
+                    if idx == 5: # sync_state
                         do_sync_resume = 'sync active' not in out
                     self.log += f'#{cmd}\n{out}'
                     if stderr != '': self.log += f'STDERR: {stderr}'
@@ -1081,16 +1077,10 @@ class Ui_MainWindow(object):
             syspath = out
             self.update_fbdata("Changing values....\n")
             for sysconfigpath in syspath.splitlines():
-                cmd = 'sed -i \'s/peerbook_update_interval, .*/peerbook_update_interval, %s},/g\' %s' % (pui_value,sysconfigpath)
+                cmd = 'sed -i \'s/gateway_and_mux_enable, .*/gateway_and_mux_enable, true},/g\' %s' % (sysconfigpath)
                 out, stderr = self.s.exec_cmd(cmd=cmd)
             for sysconfigpath in syspath.splitlines():
-                cmd = 'sed -i \'s/max_inbound_connections, .*/max_inbound_connections, %s},/g\' %s' % (mic_value,sysconfigpath)
-                out, stderr = self.s.exec_cmd(cmd=cmd)
-            for sysconfigpath in syspath.splitlines():
-                cmd = 'sed -i \'s/outbound_gossip_connections, .*/outbound_gossip_connections, %s},/g\' %s' % (ogc_value,sysconfigpath)
-                out, stderr = self.s.exec_cmd(cmd=cmd)
-            for sysconfigpath in syspath.splitlines():
-                cmd = 'sed -i \'s/num_consensus_members, .*/num_consensus_members, %s},/g\' %s' % (ncm_value,sysconfigpath)
+                cmd = 'sed -i \'s/gateways_run_chain, .*/gateways_run_chain, false},/g\' %s' % (sysconfigpath)
                 out, stderr = self.s.exec_cmd(cmd=cmd)
             cmd = 'docker stop miner && docker start miner'
             self.update_fbdata(f'Restarting Docker....\n')
@@ -1103,18 +1093,12 @@ class Ui_MainWindow(object):
             for sysconfigpath in syspath.splitlines():
                 self.update_fbdata(sysconfigpath)
                 self.update_fbdata("\n\n")
-                cmd = 'cat %s | grep "peerbook_update_interval"' % sysconfigpath
+                cmd = 'cat %s | grep "gateway_and_mux_enable"' % sysconfigpath
                 out, stderr = self.s.exec_cmd(cmd=cmd)
                 self.update_fbdata("Changed to: %s" % out)
-                cmd = 'cat %s | grep "max_inbound_connections"' % sysconfigpath
+                cmd = 'cat %s | grep "gateways_run_chain"' % sysconfigpath
                 out, stderr = self.s.exec_cmd(cmd=cmd)
                 self.update_fbdata("Changed to: %s" % out)
-                cmd = 'cat %s | grep "outbound_gossip_connections"' % sysconfigpath
-                out, stderr = self.s.exec_cmd(cmd=cmd)
-                self.update_fbdata("Changed to: %s" % out)
-                cmd = 'cat %s | grep "num_consensus_members"' % sysconfigpath
-                out, stderr = self.s.exec_cmd(cmd=cmd)
-                self.update_fbdata("Changed to: %s\n" % out)
             self.update_fbdata(f'*** DONE ***\n')
             if stderr != '': self.update_fbdata(f'STDERR: {stderr}')
             self.s.disconnect()
@@ -2065,7 +2049,7 @@ class Ui_MainWindow(object):
         self.button_restart_miner.setText(_translate("MainWindow", "Restart Miner"))
         self.lineedit_line_command.setText(_translate("MainWindow", "uptime"))
         self.button_send_command.setText(_translate("MainWindow", "Send Command"))
-        self.button_tweak.setText(_translate("MainWindow", "Tweak Peerbook"))
+        self.button_tweak.setText(_translate("MainWindow", "Set MUX and Sync"))
         self.button_prog1.setText(_translate("MainWindow", "Programmable1"))
         self.button_prog2.setText(_translate("MainWindow", "Programmable2"))
         self.button_prog3.setText(_translate("MainWindow", "Programmable3"))

@@ -33,3 +33,13 @@ setPixelSize
 TextConsole add: font.setPixelSize(15)
 LabeMiner: setPixelSize(15)
 Rest: font.setPixelSize(13)
+
+## Windows install PIP
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python get-pip.py
+
+## Python Modules
+pip install requests
+pip install numpy
+pip install packaging
+pip install paramiko
